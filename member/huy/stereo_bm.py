@@ -1,14 +1,15 @@
 __author__ = 'pc'
 import numpy as np
 import cv2
+import time
 from matplotlib import pyplot as plt
 def nothing(x):
     pass
-imgL = cv2.imread('images/left.jpg',0)
-imgR = cv2.imread('images/right.jpg',0)
-# imgL = cv2.imread('images/imageL.png',0)
-# imgR = cv2.imread('images/imageR.png',0)
-cv2.namedWindow('image')
+imgL = cv2.imread('images/imageL.png',0)
+imgR = cv2.imread('images/imageR.png',0)
+#imgL = cv2.imread('images/right.jpg',0)
+#imgR = cv2.imread('images/left.jpg',0)
+cv2.namedWindow('image',cv2.WINDOW_NORMAL)
 cv2.createTrackbar('PreFilterCap','image',1,63,nothing)
 cv2.createTrackbar('PreFilterSize','image',5,255,nothing)
 cv2.createTrackbar('PreFilterType','image',0,1,nothing)
@@ -46,7 +47,8 @@ SpeckleRange_Raw=0
 SpeckleWindowSize_Raw=0
 TextureThreshold_Raw=0
 UniquenessRatio_Raw=0
-while(500):
+while(1):
+    
     PreFilterCap = cv2.getTrackbarPos('PreFilterCap','image')
     if PreFilterCap <= 0:
         PreFilterCap = 1
@@ -69,7 +71,19 @@ while(500):
     UniquenessRatio = cv2.getTrackbarPos('UniquenessRatio','image')
 
     if PreFilterCap_Raw == PreFilterCap and PreFilterType_Raw == PreFilterType and PreFilterSize_Raw == PreFilterSize and MinDisparity_Raw == MinDisparity and SmallerBlockSize_Raw == SmallerBlockSize and Disp12MaxDiff_Raw == Disp12MaxDiff and NumDisparities_Raw == NumDisparities and SpeckleRange_Raw == SpeckleRange and SpeckleWindowSize_Raw == SpeckleWindowSize and TextureThreshold_Raw == TextureThreshold and UniquenessRatio_Raw == UniquenessRatio:
-        continue
+        time.sleep(0.1)
+
+    PreFilterCap_Raw = PreFilterCap 
+    PreFilterType_Raw = PreFilterType 
+    PreFilterSize_Raw = PreFilterSize 
+    MinDisparity_Raw = MinDisparity 
+    SmallerBlockSize_Raw = SmallerBlockSize 
+    Disp12MaxDiff_Raw = Disp12MaxDiff 
+    NumDisparities_Raw = NumDisparities 
+    SpeckleRange_Raw = SpeckleRange 
+    SpeckleWindowSize_Raw = SpeckleWindowSize 
+    TextureThreshold_Raw = TextureThreshold 
+    UniquenessRatio_Raw = UniquenessRatio
 
     stereo.setPreFilterCap(PreFilterCap)
     stereo.setPreFilterSize(PreFilterSize)
@@ -82,7 +96,8 @@ while(500):
     stereo.setSpeckleWindowSize(SpeckleWindowSize)
     stereo.setTextureThreshold (TextureThreshold)
     stereo.setUniquenessRatio(UniquenessRatio)
-    disparity = stereo.compute(imgL,imgR,cv2.CV_8U)
+    disparity = stereo.compute(imgL,imgR,cv2.CV_32F)
+    norm_coeff  = 255 / disparity.max()
     disparity_visual = cv2.normalize(disparity,disparity, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
     cv2.imshow("ima",disparity_visual)
     char = cv2.waitKey(1)
