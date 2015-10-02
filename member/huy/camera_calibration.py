@@ -14,7 +14,7 @@ objp[:,:2] = np.mgrid[0:6,0:8].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
-images = glob.glob('cheer_450K.jpg')
+images = glob.glob('../../images/cheer_450K.jpg')
 
 for fname in images:
     img = cv2.imread(fname)
@@ -37,24 +37,24 @@ for fname in images:
 
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
         img = cv2.imread('cheer_450K.jpg')
-        h,  w = img.shape[:2]
-        newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
-        # undistort
-        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-
-        # crop the image
-        x,y,w,h = roi
-        dst = dst[y:y+h, x:x+w]
-        cv2.imwrite('calibresult.png',dst)
-        # undistort
-        mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
-        dst = cv2.remap(img,mapx,mapy,cv2.INTER_LINEAR)
-
-        # crop the image
-        x,y,w,h = roi
-        dst = dst[y:y+h, x:x+w]
-        cv2.imwrite('calibresult.png',dst)
-        cv2.imshow('Pro',dst)
-    cv2.waitKey(100)
+        # h,  w = img.shape[:2]
+        # newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+        # # undistort
+        # dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+        #
+        # # crop the image
+        # x,y,w,h = roi
+        # dst = dst[y:y+h, x:x+w]
+        # cv2.imwrite('calibresult.png',dst)
+        # # undistort
+        # mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
+        # dst = cv2.remap(img,mapx,mapy,cv2.INTER_LINEAR)
+        #
+        # # crop the image
+        # x,y,w,h = roi
+        # dst = dst[y:y+h, x:x+w]
+        # cv2.imwrite('calibresult.png',dst)
+        # cv2.imshow('Pro',dst)
+    cv2.waitKey(100000)
 
 cv2.destroyAllWindows()
