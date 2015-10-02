@@ -1,104 +1,59 @@
 __author__ = 'pc'
+from stereovision.calibration import StereoCalibration
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 def nothing(x):
     pass
 
 video1 = cv2.VideoCapture(0)
-video1.set(3,400)
-video1.set(4,300)
+video1.set(3,640)
+video1.set(4,480)
 
 video2 = cv2.VideoCapture(1)
-video2.set(3,400)
-video2.set(4,300)
+video2.set(3,640)
+video2.set(4,480)
 
 # imgL = cv2.imread('images/im2.png',0)
 # imgR = cv2.imread('images/im6.png',0)
+
 cv2.namedWindow('image')
-cv2.createTrackbar('PreFilterCap','image',1,63,nothing)
-cv2.createTrackbar('PreFilterSize','image',5,255,nothing)
-cv2.createTrackbar('PreFilterType','image',0,1,nothing)
-cv2.createTrackbar('SmallerBlockSize','image',0,255,nothing)
-cv2.createTrackbar('Disp12MaxDiff','image',0,255,nothing)
-cv2.createTrackbar('MinDisparity','image',0,400,nothing)
-cv2.createTrackbar('NumDisparities','image',0,20,nothing)
+# cv2.createTrackbar('PreFilterCap','image',1,63,nothing)
+# cv2.createTrackbar('PreFilterSize','image',5,255,nothing)
+# cv2.createTrackbar('PreFilterType','image',0,1,nothing)
+# cv2.createTrackbar('SmallerBlockSize','image',0,255,nothing)
+# cv2.createTrackbar('Disp12MaxDiff','image',0,255,nothing)
+# cv2.createTrackbar('MinDisparity','image',0,400,nothing)
+# cv2.createTrackbar('NumDisparities','image',0,20,nothing)
 cv2.createTrackbar('SpeckleRange','image',0,3,nothing)
 cv2.createTrackbar('SpeckleWindowSize','image',0,5000,nothing)
 cv2.createTrackbar('TextureThreshold','image',0,2000,nothing)
 cv2.createTrackbar('UniquenessRatio','image',0,30,nothing)
-stereo = cv2.StereoBM_create(numDisparities=16, blockSize=25)
-stereo.setDisp12MaxDiff(0)
-stereo.setPreFilterCap(61)
-stereo.setPreFilterSize(5)
-stereo.setSmallerBlockSize(0)
-stereo.setPreFilterType(1)
-stereo.setMinDisparity(-39)
-stereo.setNumDisparities(112)
+
+stereo = cv2.StereoBM(preset=0, ndisparities=16, SADWindowSize=25)
+# stereo.setDisp12MaxDiff(0)
+# stereo.setPreFilterCap(61)
+# stereo.setPreFilterSize(5)
+# stereo.setSmallerBlockSize(0)
+# stereo.setPreFilterType(1)
+# stereo.setMinDisparity(-39)
+# stereo.setNumDisparities(112)
 stereo.setSpeckleRange(8)
 stereo.setSpeckleWindowSize(0)
 stereo.setTextureThreshold (507)
 stereo.setUniquenessRatio(0)
 NumDis = 16
 
-# calibration camera
-
-# termination criteria
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-
-# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((7*7,3), np.float32)
-objp[:,:2] = np.mgrid[0:7,0:7].T.reshape(-1,2)
-
-# Arrays to store object points and image points from all the images.
-objpoints = [] # 3d point in real world space
-imgpoints = [] # 2d points in image plane.
-
-# for fname in images:
-img = cv2.imread('L.png')
-gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-# cv2.imshow("s", gray)
-# cv2.waitKey(0)
-# Find the chess board corners
-ret, corners = cv2.findChessboardCorners(gray, (7,7),None)
-
-# If found, add object points, image points (after refining them)
-if ret == True:
-    print "trueee"
-    objpoints.append(objp)
-
-    corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-    imgpoints.append(corners2)
-
-    # Draw and display the corners
-    # img = cv2.drawChessboardCorners(img, (6,8), corners2,ret)
-    # cv2.imshow('img',img)
-    # cv2.waitKey(500)
-
-    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
-    img = cv2.imread('L.png')
-    h,  w = img.shape[:2]
-    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+calibration = StereoCalibration(input_folder='./out')
 
 while(1):
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
 
-    frameR = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
-    frameL = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
+    frameL = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
+    frameR = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 
-    # calibrate image Left
-    imgL = cv2.undistort(frameL, mtx, dist, None, newcameramtx)
-    # crop the image
-    x,y,w,h = roi
-    imgL = imgL[y:y+h, x:x+w]
-
-    # calibrate image right
-    imgR = cv2.undistort(frameR, mtx, dist, None, newcameramtx)
-    # crop the image
-    x,y,w,h = roi
-    imgR = imgR[y:y+h, x:x+w]
-
+    rectified_pair = calibration.rectify((frameL, frameR))
     # imgL = cv2.imread("images/imageL.png", 0)
     # imgR = cv2.imread("images/imageR.png", 0)
 
@@ -134,12 +89,14 @@ while(1):
     stereo.setTextureThreshold (TextureThreshold)
     stereo.setUniquenessRatio(UniquenessRatio)
 
-    disparity = stereo.compute(imgL,imgR,cv2.CV_8U)
+    disparity = stereo.compute(rectified_pair[0], rectified_pair[1])
+    # disparity = stereo.compute(imgL,imgR,cv2.CV_8U)
 
     disparity_visual = cv2.normalize(disparity,disparity, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
     cv2.imshow("ima",disparity_visual)
-    cv2.imshow("R", imgR)
-    cv2.imshow("L", imgL)
+    cv2.imshow("R", frameR)
+    cv2.imshow("L", frameL)
     # cv2.fastNlMeansDenoising(imgR,None,3,7,21)
     # cv2.imshow("2", imgR)
     char = cv2.waitKey(1)
