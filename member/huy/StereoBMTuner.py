@@ -2,16 +2,16 @@ from stereovision.calibration import StereoCalibration
 import cv2
 left_image = cv2.imread('L.png',0)
 right_image = cv2.imread('R.png',0)
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 def nothing(x):
     pass
-
-video1 = cv2.VideoCapture(1)
+#
+video1 = cv2.VideoCapture(0)
 video1.set(3,640)
 video1.set(4,480)
 
-video2 = cv2.VideoCapture(2)
+video2 = cv2.VideoCapture(1)
 video2.set(3,640)
 video2.set(4,480)
 
@@ -20,9 +20,6 @@ video2.set(4,480)
 # calculate the calibration, or you can clone another calibration from one in
 # memory
 calibration = StereoCalibration(input_folder='./out')
-
-
-
 
 cv2.namedWindow('Tuner')
 cv2.createTrackbar('Campresent','Tuner',0,3,nothing)
@@ -35,8 +32,8 @@ while 1:
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
 
-    imgR = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
-    imgL = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
+    imgL = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
+    imgR = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 
     # Now rectify two images taken with your stereo camera. The function expects
     # a tuple of OpenCV Mats, which in Python are numpy arrays

@@ -3,7 +3,7 @@ from stereovision.calibration import StereoCalibration
 __author__ = 'pc'
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 def nothing(x):
     pass
 
