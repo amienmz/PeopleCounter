@@ -9,12 +9,12 @@ def nothing(x):
     pass
 #
 video1 = cv2.VideoCapture(0) #right
-print video1.set(3,640)
-print video1.set(4,480)
+print video1.set(3,352)
+print video1.set(4,288)
 
 video2 = cv2.VideoCapture(1)
-video2.set(3,480)
-video2.set(4,480)
+video2.set(3,352)
+video2.set(4,288)
 
 # This assumes you've already calibrated your camera and have saved the
 # calibration files to disk. You can also initialize an empty calibration and
