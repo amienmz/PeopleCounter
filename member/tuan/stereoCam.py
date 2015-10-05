@@ -8,7 +8,7 @@ video1.set(4,480)
 saveVideoL = cv2.VideoWriter("videoL.mpg",-1, 10, (640,480))
 
 
-video2 = cv2.VideoCapture(1)
+video2 = cv2.VideoCapture(2)
 video2.set(3,640)
 video2.set(4,480)
 saveVideoR = cv2.VideoWriter("videoR.mpg",-1, 10, (640,480))
