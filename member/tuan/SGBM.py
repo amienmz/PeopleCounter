@@ -9,8 +9,8 @@ def nothing(x):
     pass
 #
 video1 = cv2.VideoCapture(0) #right
-print video1.set(3,352)
-print video1.set(4,288)
+video1.set(3,352)
+video1.set(4,288)
 
 video2 = cv2.VideoCapture(1)
 video2.set(3,352)
@@ -33,15 +33,14 @@ cv2.createTrackbar('disp12MaxDiff','Tuner',0,255,nothing)
 cv2.createTrackbar('preFilterCap','Tuner',0,255,nothing)
 cv2.createTrackbar('uniquenessRatio','Tuner',0,25,nothing)
 cv2.createTrackbar('speckleWindowSize','Tuner',0,200,nothing)
-cv2.createTrackbar('speckleRange','Tuner',0,10,nothing) # multiplied by 16
+cv2.createTrackbar('speckleRange','Tuner',0,32,nothing) # multiplied by 16
 
-# minDisparity = 78
-# numDisparities = 2
-# numDisparities = 2 *16
-# SADWindowSize = 1 #old number
-# P1 = 25
-# P2 = 84
-# disp12MaxDiff =
+minDisparity = 12
+numDisparities = 2 *16
+SADWindowSize = 1 #old number
+P1 = 19
+P2 = 84
+disp12MaxDiff = 14
 # preFilterCap =
 # uniquenessRatio =
 # speckleWindowSize =
@@ -55,7 +54,7 @@ while 1:
 
     imgR = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
     imgL = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
-    print imgR.shape[:2]
+    # print imgR.shape[:2]
     # imgL = cv2.blur(imgL,(15,15))
     # imgR = cv2.blur(imgR,(15,15))
 
@@ -74,17 +73,17 @@ while 1:
     # rectified_pair[1] = rectified_pair[1][yL:yL+hL,xL:xL+wL]
 
 
-    minDisparity = cv2.getTrackbarPos('minDisparity','Tuner')
-    numDisparities = cv2.getTrackbarPos('numDisparities','Tuner')
-    if numDisparities == 0:
-        numDisparities = 1
-    numDisparities = numDisparities *16
-    SADWindowSize = cv2.getTrackbarPos('SADWindowSize','Tuner')
-    if SADWindowSize%2 == 0:
-        SADWindowSize = SADWindowSize + 1
-    P1 = cv2.getTrackbarPos('P1','Tuner')
-    P2 = cv2.getTrackbarPos('P2','Tuner')
-    disp12MaxDiff = cv2.getTrackbarPos('disp12MaxDiff','Tuner')
+    # minDisparity = cv2.getTrackbarPos('minDisparity','Tuner')
+    # numDisparities = cv2.getTrackbarPos('numDisparities','Tuner')
+    # if numDisparities == 0:
+    #     numDisparities = 1
+    # numDisparities = numDisparities *16
+    # SADWindowSize = cv2.getTrackbarPos('SADWindowSize','Tuner')
+    # if SADWindowSize%2 == 0:
+    #     SADWindowSize = SADWindowSize + 1
+    # P1 = cv2.getTrackbarPos('P1','Tuner')
+    # P2 = cv2.getTrackbarPos('P2','Tuner')
+    # disp12MaxDiff = cv2.getTrackbarPos('disp12MaxDiff','Tuner')
     preFilterCap = cv2.getTrackbarPos('preFilterCap','Tuner')
     uniquenessRatio = cv2.getTrackbarPos('uniquenessRatio','Tuner')
     speckleWindowSize = cv2.getTrackbarPos('speckleWindowSize','Tuner')
@@ -108,7 +107,9 @@ while 1:
     # small_depth = cv2.resize(disparity_visual, (0,0), disparity_visual, 0.2, 0.2)
     mark = np.zeros(disparity_visual.shape[:2], np.uint8)
     display = cv2.inpaint(disparity_visual, mark, 10, cv2.INPAINT_TELEA, disparity_visual)
-
+    # (T, mask) = cv2.threshold(display, 200, 255, cv2.THRESH_BINARY)
+    # mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
+    # dst = cv2.inpaint(display, mask, 3, cv2.INPAINT_TELEA)
 
     # dis = cv2.cvtColor(disparity_visual, cv2.COLOR_RGB2GRAY)
     # mark = np.zeros(imgL.shape[:2], np.uint8)
@@ -116,12 +117,14 @@ while 1:
     # Show normalized version of image so you can see the values
     # display = cv2.medianBlur(disparity_visual,5)
     # display = display[yL:yL+hL,xL:xL+wL]
+    display = cv2.medianBlur(display, 11)
     cv2.imshow("Tuner", display)
+    # cv2.imshow("mask", mask)
     # cv2.imshow("Tuner", disparity_visual)
     # cv2.imshow("pain", inpain)
     # cv2.imshow("image", imgL)
-    cv2.imshow("res",rectified_pair[0])
-    cv2.imshow("res2",rectified_pair[1])
+    # cv2.imshow("res",rectified_pair[0])
+    # cv2.imshow("res2",rectified_pair[1])
     # cv2.imshow("imageR", imgR)
     char = cv2.waitKey(10)
     if (char == 27):
