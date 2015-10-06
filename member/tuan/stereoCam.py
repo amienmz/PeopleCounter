@@ -2,24 +2,24 @@ __author__ = 'pc'
 import cv2
 
 
-video1 = cv2.VideoCapture(3)
+video1 = cv2.VideoCapture(0) #right
 video1.set(3,640)
 video1.set(4,480)
-saveVideoL = cv2.VideoWriter("videoL.mpg",-1, 10, (640,480))
+# saveVideoL = cv2.VideoWriter("videoL.mpg",-1, 10, (640,480))
 
 
-video2 = cv2.VideoCapture(2)
+video2 = cv2.VideoCapture(1)
 video2.set(3,640)
 video2.set(4,480)
-saveVideoR = cv2.VideoWriter("videoR.mpg",-1, 10, (640,480))
+# saveVideoR = cv2.VideoWriter("videoR.mpg",-1, 10, (640,480))
 
 loop = True
 while(loop == True):
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
 
-    saveVideoL.write(frame1)
-    saveVideoR.write(frame2)
+    # saveVideoL.write(frame1)
+    # saveVideoR.write(frame2)
 
     cv2.imshow("video1", frame1)
     cv2.imshow("video2", frame2)

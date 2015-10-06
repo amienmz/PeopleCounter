@@ -7,11 +7,11 @@ right_image = cv2.imread('R.png',0)
 def nothing(x):
     pass
 #
-video1 = cv2.VideoCapture(2)
+video1 = cv2.VideoCapture(0)
 video1.set(3,400)
 video1.set(4,400)
 
-video2 = cv2.VideoCapture(3)
+video2 = cv2.VideoCapture(1)
 video2.set(3,400)
 video2.set(4,400)
 
@@ -19,7 +19,7 @@ video2.set(4,400)
 # calibration files to disk. You can also initialize an empty calibration and
 # calculate the calibration, or you can clone another calibration from one in
 # memory
-calibration = StereoCalibration(input_folder='./export')
+calibration = StereoCalibration(input_folder='./data')
 
 cv2.namedWindow('Tuner')
 cv2.createTrackbar('Campresent','Tuner',0,3,nothing)
@@ -68,4 +68,4 @@ while 1:
     if (char == 27):
         break
 
-cv2.waitKey(1000000)
+cv2.destroyAllWindows()

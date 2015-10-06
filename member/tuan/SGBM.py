@@ -20,7 +20,7 @@ video2.set(4,288)
 # calibration files to disk. You can also initialize an empty calibration and
 # calculate the calibration, or you can clone another calibration from one in
 # memory
-calibration = StereoCalibration(input_folder='./export480')
+calibration = StereoCalibration(input_folder='./data')
 
 
 cv2.namedWindow('Tuner')
