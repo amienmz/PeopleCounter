@@ -7,11 +7,11 @@ right_image = cv2.imread('R.png',0)
 def nothing(x):
     pass
 #
-video1 = cv2.VideoCapture(0)
+video1 = cv2.VideoCapture(2)
 video1.set(3,400)
 video1.set(4,400)
 
-video2 = cv2.VideoCapture(2)
+video2 = cv2.VideoCapture(3)
 video2.set(3,400)
 video2.set(4,400)
 

@@ -2,7 +2,7 @@ __author__ = 'pc'
 import cv2
 
 
-video1 = cv2.VideoCapture(0)
+video1 = cv2.VideoCapture(3)
 video1.set(3,640)
 video1.set(4,480)
 saveVideoL = cv2.VideoWriter("videoL.mpg",-1, 10, (640,480))
