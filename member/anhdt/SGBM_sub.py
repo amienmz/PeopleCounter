@@ -47,8 +47,9 @@ disp12MaxDiff = 14
 # speckleWindowSize =
 # speckleRange =
 fullDP = True
-checkBg = False
-imgBg = None
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(4,4))
+fgbg1 = cv2.BackgroundSubtractorMOG2()
+fgbg2 = cv2.BackgroundSubtractorMOG2()
 while 1:
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
@@ -62,6 +63,16 @@ while 1:
     # Now rectify two images taken with your stereo camera. The function expects
     # a tuple of OpenCV Mats, which in Python are numpy arrays
     rectified_pair = calibration.rectify((imgL, imgR))
+    imgx1 = rectified_pair[0]
+    imgx2 = rectified_pair[1]
+    rectified_pair[0] = cv2.medianBlur(rectified_pair[0],7)
+    rectified_pair[1] = cv2.medianBlur(rectified_pair[1],7)
+    fgmask1 = fgbg1.apply(rectified_pair[0])
+    fgmask1 = cv2.morphologyEx(fgmask1, cv2.MORPH_OPEN, kernel)
+    fgmask2 = fgbg2.apply(rectified_pair[1])
+    fgmask2 = cv2.morphologyEx(fgmask1, cv2.MORPH_OPEN, kernel)
+    rectified_pair[0] = cv2.bitwise_and(imgx1,imgx1,None,fgmask1)
+    rectified_pair[1] = cv2.bitwise_and(imgx2,imgx2,None,fgmask2)
     # cv2.imshow("crop", rectified_pair[0])
     # cv2.waitKey(0)
     #crop image Left
@@ -119,17 +130,6 @@ while 1:
     # display = cv2.medianBlur(disparity_visual,5)
     # display = display[yL:yL+hL,xL:xL+wL]
     display = cv2.medianBlur(display, 11)
-    if checkBg == False:
-        imgBg = display
-        checkBg = True
-    else:
-        mask = display - imgBg
-        gray = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-        ret, gray = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
-        gray = cv2.morphologyEx(gray, cv2.MORPH_OPEN, kernel)
-        gray = cv2.medianBlur(gray,5)
-        display = cv2.bitwise_and(display,display,None,gray)
     cv2.imshow("Tuner", display)
     # cv2.imshow("mask", mask)
     # cv2.imshow("Tuner", disparity_visual)
