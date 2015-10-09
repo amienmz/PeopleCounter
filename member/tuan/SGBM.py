@@ -55,8 +55,8 @@ while 1:
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
 
-    imgR = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
-    imgL = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
+    imgL = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
+    imgR = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 
     # Now rectify two images taken with your stereo camera. The function expects
     # a tuple of OpenCV Mats, which in Python are numpy arrays
@@ -92,12 +92,16 @@ while 1:
     # display = cv2.inpaint(display, mask, 5, cv2.INPAINT_TELEA)
     display = cv2.medianBlur(display, 5)
 
+    # detector = cv2.SimpleBlobDetector()
+    # keypoint = detector.detector.detect(display)
+    # img_keypoint = cv2.drawKeypoints(display, keypoint, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
     # display = cv2.bilateralFilter(display,5,55,55)
     # display = cv2.GaussianBlur(display, (5,5), 0.1)
     # display = cv2.blur(display, (5,5))
     # display = cv2.bitwise_and(display,display,None,mask)
     cv2.imshow("Tuner", display)
-    # cv2.imshow("mask", mask)
+    # cv2.imshow("mask", img_keypoint)
     # cv2.imshow("res",rectified_pair[0])
     # cv2.imshow("res2",rectified_pair[1])
     char = cv2.waitKey(10)
