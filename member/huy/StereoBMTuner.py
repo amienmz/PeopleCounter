@@ -39,7 +39,7 @@ while 1:
     # a tuple of OpenCV Mats, which in Python are numpy arrays
     rectified_pair = calibration.rectify((imgL, imgR))
 
-    _bm_preset = cv2.STEREO_BM_BASIC_PRESET #cv2.getTrackbarPos('Campresent','Tuner')
+    _bm_preset = cv2.STEREO_BM_NARROW_PRESET #cv2.getTrackbarPos('Campresent','Tuner')
     _search_range = cv2.getTrackbarPos('numDis','Tuner')
     _window_size = cv2.getTrackbarPos('window_size','Tuner')
 
@@ -55,7 +55,7 @@ while 1:
                                           ndisparities=_search_range,
                                           SADWindowSize=_window_size)
     # Compute disparity image
-
+    block_matcher.setPreFilterType(1)
     disparity = block_matcher.compute(rectified_pair[0], rectified_pair[1])
 
     # norm_coeff = 255 / disparity.max()
@@ -65,7 +65,7 @@ while 1:
     disparity_visual = cv2.medianBlur(disparity_visual,5)
     cv2.imshow("StereoBMTuner", disparity_visual)
     char = cv2.waitKey(10)
-    print str(_bm_preset) +' - '+ str(_search_range) +' - '+ str(_window_size)
+    # print str(_bm_preset) +' - '+ str(_search_range) +' - '+ str(_window_size)
     if (char == 27):
         break
 

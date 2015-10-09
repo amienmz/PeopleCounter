@@ -1,3 +1,4 @@
+
 __author__ = 'anhdt'
 from stereovision.calibration import StereoCalibration
 import cv2
@@ -70,7 +71,7 @@ while 1:
     fgmask1 = fgbg1.apply(rectified_pair[0])
     fgmask1 = cv2.morphologyEx(fgmask1, cv2.MORPH_OPEN, kernel)
     fgmask2 = fgbg2.apply(rectified_pair[1])
-    fgmask2 = cv2.morphologyEx(fgmask1, cv2.MORPH_OPEN, kernel)
+    fgmask2 = cv2.morphologyEx(fgmask2, cv2.MORPH_OPEN, kernel)
     rectified_pair[0] = cv2.bitwise_and(imgx1,imgx1,None,fgmask1)
     rectified_pair[1] = cv2.bitwise_and(imgx2,imgx2,None,fgmask2)
     # cv2.imshow("crop", rectified_pair[0])
@@ -137,7 +138,8 @@ while 1:
     # cv2.imshow("image", imgL)
     # cv2.imshow("res",rectified_pair[0])
     # cv2.imshow("res2",rectified_pair[1])
-    # cv2.imshow("imageR", imgR)
+    cv2.imshow("fg1", fgmask1)
+    cv2.imshow("fg2", fgmask2)
     char = cv2.waitKey(10)
     if (char == 27):
         break
