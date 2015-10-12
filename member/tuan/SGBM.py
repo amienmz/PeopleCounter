@@ -5,11 +5,11 @@ import numpy as np
 def nothing(x):
     pass
 #
-video1 = cv2.VideoCapture(0) #right
+video1 = cv2.VideoCapture('../../Datas/outputR24.avi') #right
 video1.set(3,352)
 video1.set(4,288)
 
-video2 = cv2.VideoCapture(1)
+video2 = cv2.VideoCapture('../../Datas/outputL24.avi')
 video2.set(3,352)
 video2.set(4,288)
 
@@ -17,7 +17,7 @@ video2.set(4,288)
 # calibration files to disk. You can also initialize an empty calibration and
 # calculate the calibration, or you can clone another calibration from one in
 # memory
-calibration = StereoCalibration(input_folder='./data')
+calibration = StereoCalibration(input_folder='../../Datas/data')
 
 
 cv2.namedWindow('Tuner')
@@ -44,22 +44,21 @@ SADWindowSize = 1 #old number
 P1 = 35
 P2 = 89
 disp12MaxDiff = 0
-# preFilterCap =
-# uniquenessRatio =
-# speckleWindowSize =
-# speckleRange =
+preFilterCap = 0
+uniquenessRatio = 0
+speckleWindowSize = 0
+speckleRange = 0
 fullDP = True
 
+fgbg = cv2.BackgroundSubtractorMOG2(history=10, varThreshold=100, bShadowDetection=1)
 
 while 1:
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
 
-    imgL = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
-    imgR = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
+    imgR = cv2.cvtColor(frame1,cv2.COLOR_RGB2GRAY)
+    imgL = cv2.cvtColor(frame2,cv2.COLOR_RGB2GRAY)
 
-    # Now rectify two images taken with your stereo camera. The function expects
-    # a tuple of OpenCV Mats, which in Python are numpy arrays
     rectified_pair = calibration.rectify((imgL, imgR))
     # rectified_pair = calibration.rectify((frame2, frame1))
 
@@ -74,10 +73,10 @@ while 1:
     # P1 = cv2.getTrackbarPos('P1','Tuner')
     # P2 = cv2.getTrackbarPos('P2','Tuner')
     # disp12MaxDiff = cv2.getTrackbarPos('disp12MaxDiff','Tuner')
-    preFilterCap = cv2.getTrackbarPos('preFilterCap','Tuner')
-    uniquenessRatio = cv2.getTrackbarPos('uniquenessRatio','Tuner')
-    speckleWindowSize = cv2.getTrackbarPos('speckleWindowSize','Tuner')
-    speckleRange = cv2.getTrackbarPos('speckleRange','Tuner')
+    # preFilterCap = cv2.getTrackbarPos('preFilterCap','Tuner')
+    # uniquenessRatio = cv2.getTrackbarPos('uniquenessRatio','Tuner')
+    # speckleWindowSize = cv2.getTrackbarPos('speckleWindowSize','Tuner')
+    # speckleRange = cv2.getTrackbarPos('speckleRange','Tuner')
     # fullDP = True
 
     block_matcher = cv2.StereoSGBM(minDisparity, numDisparities, SADWindowSize, P1, P2,disp12MaxDiff,preFilterCap, uniquenessRatio, speckleWindowSize,speckleRange,fullDP)
@@ -86,11 +85,23 @@ while 1:
     display = cv2.normalize(disparity,disparity, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
     cv2.imshow("Before filter", display)
-    (T, mask) = cv2.threshold(display, 0, 255, cv2.THRESH_BINARY_INV)
-
+    # (T, mask) = cv2.threshold(display, 50, 255, cv2.THRESH_BINARY_INV)
+    # mask = cv2.medianBlur(mask,5)
+    # cv2.imshow("mask1", mask)
     # mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
-    # display = cv2.inpaint(display, mask, 5, cv2.INPAINT_TELEA)
+    # display = cv2.inpaint(display, mask, 3, cv2.INPAINT_TELEA)
     display = cv2.medianBlur(display, 5)
+
+    fgmask = fgbg.apply(display, learningRate=0)
+    fgmask = cv2.medianBlur(fgmask, 3)
+    kernel = np.ones((5,5), np.uint8)
+    fgmask = cv2.erode(fgmask, kernel, iterations=1)
+    fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
+    fgmask = cv2.medianBlur(fgmask, 5)
+    fgmask = cv2.bitwise_and(display, display,None, fgmask)
+    cv2.imshow("mask", fgmask)
+
+
 
     # detector = cv2.SimpleBlobDetector()
     # keypoint = detector.detector.detect(display)
@@ -105,6 +116,8 @@ while 1:
     # cv2.imshow("res",rectified_pair[0])
     # cv2.imshow("res2",rectified_pair[1])
     char = cv2.waitKey(10)
+    if (char == 99):
+        cv2.waitKey(0)
     if (char == 27):
         break
 
