@@ -1,15 +1,11 @@
 import cv2
 import numpy
 import time
+import const
+import socket  # for sockets
+import sys  # for exit
 
 __author__ = 'huybu'
-'''
-    udp socket client
-    Silver Moon
-'''
-
-import socket   #for sockets
-import sys  #for exit
 
 # create dgram udp socket
 try:
@@ -18,28 +14,40 @@ except socket.error:
     print 'Failed to create socket'
     sys.exit()
 
-host = 'localhost';
-port = 8888;
+# host = '10.20.13.171';
+HOST = 'localhost';
+PORT = 8888;
+
+count = 0
+
+try:
+    # Set the whole string
+    s.sendto(const.CMD_CONNECT, (HOST, PORT))
+
+    # receive data from client (data, addr)
+    first = None
+    while True:
+        try:
+            d = s.recvfrom(30000)
+            count += 1
+            if count == 1:
+                first = time.time()
+            reply = d[0]
+            addr = d[1]
+            arr = reply.split('daicahuy')
+            dataRight = numpy.fromstring(arr[0], dtype='uint8')
+            dataLeft = numpy.fromstring(arr[1], dtype='uint8')
+            decimgRight = cv2.imdecode(dataRight, 1)
+            decimgLeft = cv2.imdecode(dataLeft, 1)
+            cv2.imshow('SERVER RIGHT', decimgRight)
+            cv2.imshow('SERVER LEFT', decimgLeft)
+            print " pp: " + str(count / (time.time() - first)) + " p/s"
+            cv2.waitKey(1)
+        except:
+            print 'Exception: ' + sys.exc_info()[0]
+            pass
 
 
-while True:
-    try :
-        #Set the whole string
-        s.sendto('connect', (host, port))
-
-
-        # receive data from client (data, addr)
-        count=0
-        # while True:
-        d = s.recvfrom(60000)
-        reply = d[0]
-        addr = d[1]
-        data = numpy.fromstring(reply, dtype='uint8')
-        decimg=cv2.imdecode(data,1)
-        cv2.imshow('SERVER'+str(count),decimg)
-        cv2.waitKey(50)
-
-
-    except socket.error, msg:
-        print 'Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-        sys.exit()
+except socket.error, msg:
+    print 'Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+    sys.exit()

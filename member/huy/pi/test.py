@@ -1,6 +1,25 @@
+import threading
+# import test
+
 __author__ = 'huybu'
-import const
+# import const
+#
+# line = 'huydaicahuyhehe'
+#
+# ar = line.split('daicahuy')
+#
+# print(ar)
+#
+# print(const.POS_DATA)
 
-const = const.ConstantValues()
+class huy(threading.Thread):
+    def __init__(self, value):
+        self.valuee = value
+        return
+    def run(self):
+        for i in range(0, self.valuee):
+            print(i + ' ')
 
-print(const.POS_DATA)
+
+client = huy(10)
+client.start()
