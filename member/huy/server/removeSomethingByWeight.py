@@ -16,7 +16,7 @@ for cnt in contours:
         # cv2.drawContours(mask,[cnt],0,0,-1)
         # (x,y,w,h) = cv2.boundingRect(cnt)
 
-        cv2.drawContours(gray2,[cnt],0,0,-1)
+        cv2.drawContours(gray2,[cnt],0,0,-3)
         # cv2.rectangle(gray2,(x,y),(x+w,y+h),0,-1)
         # if gray2[y,x]==255:
         #     cv2.rectangle(gray2,(x,y),(x+w,y+h),255,-1)
@@ -24,7 +24,7 @@ for cnt in contours:
         #     cv2.rectangle(gray2,(x,y),(x+w,y+h),0,-1)
 # cv2.imshow('img',img)
 
-# cv2.imshow('mask',mask)
+cv2.imshow('mask',img)
 cv2.imshow('IMG',gray2)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
