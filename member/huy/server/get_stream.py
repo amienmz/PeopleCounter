@@ -18,6 +18,7 @@ except socket.error:
     print 'Failed to create socket'
     sys.exit()
 
+# host = '10.20.13.171';
 host = 'localhost';
 port = 8888;
 
@@ -34,9 +35,13 @@ while True:
         d = s.recvfrom(60000)
         reply = d[0]
         addr = d[1]
-        data = numpy.fromstring(reply, dtype='uint8')
-        decimg=cv2.imdecode(data,1)
-        cv2.imshow('SERVER'+str(count),decimg)
+        arr = reply.split('daicahuy')
+        dataRight = numpy.fromstring(arr[0], dtype='uint8')
+        dataLeft = numpy.fromstring(arr[1], dtype='uint8')
+        decimgRight=cv2.imdecode(dataRight,1)
+        decimgLeft=cv2.imdecode(dataLeft,1)
+        cv2.imshow('SERVER RIGHT'+str(count),decimgRight)
+        cv2.imshow('SERVER LEFT'+str(count),decimgLeft)
         cv2.waitKey(50)
 
 
