@@ -84,7 +84,7 @@ while 1:
 
     display = cv2.normalize(disparity,disparity, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
-    cv2.imshow("Before filter", display)
+    # cv2.imshow("Before filter", display)
     # (T, mask) = cv2.threshold(display, 50, 255, cv2.THRESH_BINARY_INV)
     # mask = cv2.medianBlur(mask,5)
     # cv2.imshow("mask1", mask)
@@ -92,14 +92,18 @@ while 1:
     # display = cv2.inpaint(display, mask, 3, cv2.INPAINT_TELEA)
     display = cv2.medianBlur(display, 5)
 
+    cv2.line(display,(0,144-60), (3352,144-60), (255,0,0),1)
+    cv2.line(display,(0,144+60), (3352,144+60), (255,0,0),1)
+    cv2.putText(display,"In: 2", (20,220), cv2.FONT_HERSHEY_SIMPLEX, 0.5,255)
+    cv2.putText(display,"Out: 3", (200,220), cv2.FONT_HERSHEY_SIMPLEX, 0.5,255)
     fgmask = fgbg.apply(display, learningRate=0)
     fgmask = cv2.medianBlur(fgmask, 3)
-    kernel = np.ones((5,5), np.uint8)
+    kernel = np.ones((3,3), np.uint8)
     fgmask = cv2.erode(fgmask, kernel, iterations=1)
     fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
     fgmask = cv2.medianBlur(fgmask, 5)
     fgmask = cv2.bitwise_and(display, display,None, fgmask)
-    cv2.imshow("mask", fgmask)
+    # cv2.imshow("mask", fgmask)
 
 
 

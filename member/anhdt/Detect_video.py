@@ -10,6 +10,7 @@ WIDTH_PCONS, HEIGHT_PCONS = [100,100]
 WIDTH_HCONS, HEIGHT_HCONS = [50,50]
 SIZE_HEAD_MAX, SIZE_HEAD_MIN = [1.08,0.3]
 HEIGHT_IMG, WIDTH_IMG = [288,352]
+LINE_POS_TOP, LINE_POS_BOT = [144-50, 144+50]
 
 def checkHead(img,pon1,pon2):
     if pon2[1] - pon1[1] < WIDTH_HCONS or pon2[0] - pon1[0] < WIDTH_HCONS:
@@ -79,11 +80,11 @@ def locRec(pon1,pon2):
 def nothing(x):
     pass
 #
-video1 = cv2.VideoCapture('outputR24.avi') #right
+video1 = cv2.VideoCapture('../../Datas/outputR24.avi') #right
 video1.set(3,352)
 video1.set(4,288)
 
-video2 = cv2.VideoCapture('outputL24.avi')
+video2 = cv2.VideoCapture('../../Datas/outputL24.avi')
 video2.set(3,352)
 video2.set(4,288)
 
@@ -154,9 +155,9 @@ def sysn_line(data,y,h):
         data[6] = ln
     return True
 def check_withLine(y,h):
-    if y <= 100 <= y+h:
+    if y <= LINE_POS_TOP <= y+h:
         return 1
-    elif y <= 180 <= y+h:
+    elif y <= LINE_POS_BOT <= y+h:
         return 2
     else:
         return -1
@@ -260,12 +261,12 @@ while 1:
                     pon2 = (pon1[0]+datax[1][0]-datax[0][0],ponto1[1]+datax[1][1])
                     # cv2.rectangle(display, pon1, pon2,(255,255,255), 2)
             if locRec(ponto1,ponto2):
-                # cv2.rectangle(display,ponto1, ponto2,(255,255,255), 2)
+                cv2.rectangle(display,ponto1, ponto2,(255,255,255), 2)
                 check_nextline(ponto1,ponto3)
     remove_track()
     # print allObj
-    cv2.line(display,(0,100),(352,100),(255,255,255),1)
-    cv2.line(display,(0,180),(352,180),(255,255,255),1)
+    cv2.line(display,(0,LINE_POS_TOP),(352,LINE_POS_TOP),(255,255,255),1)
+    cv2.line(display,(0,LINE_POS_BOT),(352,LINE_POS_BOT),(255,255,255),1)
     cv2.putText(display,'In: %i'%InSh,(50,220), font, 0.5,(255,255,255),1)
     cv2.putText(display,'Out: %i'%OutSh,(200,220), font, 0.5,(255,255,255),1)
     cv2.imshow("res",display)
