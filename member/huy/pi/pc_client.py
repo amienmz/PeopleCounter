@@ -1,8 +1,10 @@
+import socket
 import numpy
 import sys
 import threading
 import cv2
-
+import time
+import zlib
 __author__ = 'huybu'
 
 
@@ -11,7 +13,7 @@ class PCClient(threading.Thread):
 
     def __init__(self, addr, capture_right, capture_left, udpSocket):
         super(PCClient, self).__init__()
-        self.addr = addr
+        self.address = addr
         self.running = True
         self.capture_right = capture_right
         self.capture_left = capture_left
@@ -20,18 +22,29 @@ class PCClient(threading.Thread):
     def run(self):
         while self.running:
             try:
-                ret, frameRight = self.capture_right.read()
-                ret, frameLeft = self.capture_left.read()
-                comRight = numpy.array(cv2.imencode('.jpg', frameRight, self.encode_param)[1]).tostring()
-                comLeft = numpy.array(cv2.imencode('.jpg', frameLeft, self.encode_param)[1]).tostring()
-                dataRight = numpy.array(comRight)
-                dataLeft = numpy.array(comLeft)
+                ret, frame_right = self.capture_right.read()
+                ret, frame_left = self.capture_left.read()
+                # comRight = numpy.array(cv2.imencode('.jpg', frame_right, self.encode_param)[1]).tostring()
+                # comLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1]).tostring()
+                # dataRight = numpy.array(comRight)
+                # dataLeft = numpy.array(comLeft)
+                dataRight = numpy.array(cv2.imencode('.jpg', frame_right, self.encode_param)[1])
+                dataLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1])
                 stringData = dataRight.tostring() + "daicahuy" + dataLeft.tostring()
-                self.udpSocket.sendto(stringData, self.addr)
+                compressedData = zlib.compress(stringData)
+                self.udpSocket.sendto(compressedData, self.address)
+                cv2.waitKey(1)
             except Exception, ex:
+                print 'stop client exception'
                 print str(ex)
-                self.stopThread()
-                pass
+                self.stopthread()
+                break
 
-    def stopThread(self):
+    def stopthread(self):
+        print 'stop client'
+        try:
+            self.capture_right.release()
+            self.capture_left.release()
+        except:
+            pass
         self.running = False
