@@ -13,7 +13,7 @@ class BackgroundSubtraction(object):
         approx = cv2.approxPolyDP(c, 0.1 * peri, True)
 
         # the contour is 'bad' if it is not a rectangle
-        return cv2.contourArea(c)<3000
+        return cv2.contourArea(c)<5000
 
     def compute(self, image):
         fgmask = self.fgbg.apply(image, learningRate=0)
