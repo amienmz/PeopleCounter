@@ -20,6 +20,7 @@ params.blobColor = 150
 detector = cv2.SimpleBlobDetector(params)
 
 # if videoStreamer.connect_pi():
+count = 0
 while True:
     # image_left, image_right = videoStreamer.get_image_from_pi()
     image_left, image_right = streamer.get_image_from_video(videoLeft,videoRight)
@@ -30,6 +31,8 @@ while True:
     cv2.imshow("back", display)
     char = cv2.waitKey(10)
     if (char == 99):
+        count += 1
+        cv2.imwrite('capture/img' + str(count)+'.png', display)
         cv2.waitKey(0)
     if (char == 27):
         break
