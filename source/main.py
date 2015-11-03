@@ -4,20 +4,29 @@ from source.utils.videoStreamer import VideoStreamer
 from source.utils.backgroundSubtraction import BackgroundSubtraction
 import numpy as np
 import cv2
+from source.learningMachine.detect import Detector
 
-streamer = VideoStreamer('../Datas/outputL24.avi','../Datas/outputR24.avi')
+# load video demo
+streamer = VideoStreamer('../data/outputL24.avi','../data/outputR24.avi')
 # videoStreamer = VideoStreamer('localhost', '8888')
+
+# get video left and right
 videoLeft, videoRight = streamer.get_video_data()
-depthmapCalculator = DepthmapCalculator('../Datas/data')
+
+# load calibration data to calculate depth map
+depthmapCalculator = DepthmapCalculator('../data/calibration')
+
+# calibrate camera
 calibration = depthmapCalculator.get_calibration()
+
+# init block matcher (SGBM) to calculate depth map
 block_matcher = depthmapCalculator.get_block_macher()
+
+# init background subtraction
 backgroundSubtraction = BackgroundSubtraction()
 
-params = cv2.SimpleBlobDetector_Params()
-params.filterByColor = 1
-params.blobColor = 150
-
-detector = cv2.SimpleBlobDetector(params)
+# init detector
+detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
 
 # if videoStreamer.connect_pi():
 count = 0
@@ -27,12 +36,16 @@ while True:
     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
     # cv2.imshow("depthmap", depthmap)
     display = backgroundSubtraction.compute(depthmap)
-
-    cv2.imshow("back", display)
-    char = cv2.waitKey(10)
+    if count>74:
+        im_detected = detector.detect(display)
+    # cv2.imshow("back", display)
+        cv2.imshow("back", im_detected)
+    print "-----------------------------" + str(count)
+    count+=1
+    char = cv2.waitKey(1)
     if (char == 99):
-        count += 1
-        cv2.imwrite('capture/img' + str(count)+'.png', display)
+    #     count += 1
+    #     cv2.imwrite('capture/img' + str(count)+'.png', display)
         cv2.waitKey(0)
     if (char == 27):
         break
