@@ -2,6 +2,7 @@ __author__ = 'pc'
 from source.utils.depthmapCalculator import DepthmapCalculator
 from source.utils.videoStreamer import VideoStreamer
 from source.utils.backgroundSubtraction import BackgroundSubtraction
+from source.utils.ObjectMoving import ObjectMoving
 import numpy as np
 import cv2
 from source.learningMachine.detect import Detector
@@ -27,6 +28,10 @@ backgroundSubtraction = BackgroundSubtraction()
 
 # init detector
 detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
+imgObjectMoving = ObjectMoving(150,150,10)
+params = cv2.SimpleBlobDetector_Params()
+params.filterByColor = 1
+params.blobColor = 150
 
 # if videoStreamer.connect_pi():
 count = 0
@@ -35,7 +40,7 @@ while True:
     image_left, image_right = streamer.get_image_from_video(videoLeft,videoRight)
     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
     # cv2.imshow("depthmap", depthmap)
-    display = backgroundSubtraction.compute(depthmap)
+    mask, display = backgroundSubtraction.compute(depthmap)
     if count>74:
         im_detected = detector.detect(display)
     # cv2.imshow("back", display)
@@ -43,6 +48,10 @@ while True:
     print "-----------------------------" + str(count)
     count+=1
     char = cv2.waitKey(1)
+    res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
+    if res:
+        cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
+    cv2.imshow("back", display)
     if (char == 99):
     #     count += 1
     #     cv2.imwrite('capture/img' + str(count)+'.png', display)

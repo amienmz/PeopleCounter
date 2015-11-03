@@ -32,6 +32,5 @@ class BackgroundSubtraction(object):
         contours, hiararchy = cv2.findContours(fgmask.copy(), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
         for c in contours:
             cv2.drawContours(maskGood, [c], 0, 255, -1)
-
-        return cv2.bitwise_and(image, maskGood)
+        return maskGood, cv2.bitwise_and(image, maskGood)
 
