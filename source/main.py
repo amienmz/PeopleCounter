@@ -28,10 +28,10 @@ backgroundSubtraction = BackgroundSubtraction()
 
 # init detector
 detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
+
+# subtract moving object
 imgObjectMoving = ObjectMoving(150,150,10)
-params = cv2.SimpleBlobDetector_Params()
-params.filterByColor = 1
-params.blobColor = 150
+
 
 # if videoStreamer.connect_pi():
 count = 0
@@ -40,18 +40,22 @@ while True:
     image_left, image_right = streamer.get_image_from_video(videoLeft,videoRight)
     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
     # cv2.imshow("depthmap", depthmap)
-    mask, display = backgroundSubtraction.compute(depthmap)
-    if count>74:
-        im_detected = detector.detect(display)
+    if count > 1:
+        mask, display = backgroundSubtraction.compute(depthmap)
+        # cv2.imshow("back1", mask)
+        if count>74:
+            im_detected = detector.detect(display)
+        # cv2.imshow("back", display)
+            cv2.imshow("back", im_detected)
+    # print "-----------------------------" + str(count)
+
+
+    # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
+    # if res:
+    #     cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
     # cv2.imshow("back", display)
-        cv2.imshow("back", im_detected)
-    print "-----------------------------" + str(count)
     count+=1
     char = cv2.waitKey(1)
-    res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
-    if res:
-        cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
-    cv2.imshow("back", display)
     if (char == 99):
     #     count += 1
     #     cv2.imwrite('capture/img' + str(count)+'.png', display)

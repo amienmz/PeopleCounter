@@ -39,7 +39,7 @@ class Detector(object):
                 yield (x, y, image[y:y + window_size[1], x:x + window_size[0]])
 
     def detect(self,image):
-        image = cv2.Canny(image,100,100)
+        # image = cv2.Canny(image,100,100)
         # Load the classifier
 
         # List to store the detections
@@ -56,12 +56,13 @@ class Detector(object):
             if im_window.shape[0] != self.min_wdw_sz[1] or im_window.shape[1] != self.min_wdw_sz[0]:
                 continue
             # Calculate the HOG features
-            fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize, normalize)
+            fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize)#, normalize)
             pred = self.clf.predict(fd)
-            print "predict: " + str(pred)
+            # print "predict: " + str(pred)
             if pred == 1:
-                # print  "Detection:: Location -> ({}, {})".format(x, y)
-                # print "Scale ->  {} | Confidence Score {} \n".format(scale,clf.decision_function(fd))
+                print  "Detection:: Location -> ({}, {})".format(x, y)
+                print "Scale ->  {} | Confidence Score {} \n".format(scale,self.clf.decision_function(fd))
+                print "%.9f" % (self.clf.decision_function(fd))
                 detections.append((x, y, self.clf.decision_function(fd),
                     int(self.min_wdw_sz[0]),
                     int(self.min_wdw_sz[1])))

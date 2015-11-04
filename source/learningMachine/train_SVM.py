@@ -14,7 +14,7 @@ if __name__ == "__main__":
     os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/models/*")
 
     pos_feat_path = "../../data/features/pos"
-    neg_feat_path = "../../data/features/pos"
+    neg_feat_path = "../../data/features/neg"
 
     # Classifiers supported
     clf_type = "LIN_SVM"
@@ -26,16 +26,17 @@ if __name__ == "__main__":
     for feat_path in glob.glob(os.path.join(pos_feat_path,"*.feat")):
         fd = joblib.load(feat_path)
         print len(fd)
-        if len(fd) == 7056:
+        if len(fd) == 800:
             fds.append(fd)
             labels.append(1)
+    print len(labels)
 
     # Load the negative features
     for feat_path in glob.glob(os.path.join(neg_feat_path,"*.feat")):
         fd = joblib.load(feat_path)
-        if len(fd) == 7056:
+        if len(fd) == 800:
             fds.append(fd)
-            labels.append(-1)
+            labels.append(0)
 
     # print fds
     if clf_type is "LIN_SVM":
