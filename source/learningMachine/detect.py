@@ -15,6 +15,7 @@ class Detector(object):
         self.step_size = step_size
         self.downscale = downscale
         self.clf = joblib.load(model_path)
+        self.count = 0
 
 
     def sliding_window(self, image, window_size, step_size):
@@ -60,9 +61,9 @@ class Detector(object):
             pred = self.clf.predict(fd)
             # print "predict: " + str(pred)
             if pred == 1:
-                print  "Detection:: Location -> ({}, {})".format(x, y)
-                print "Scale ->  {} | Confidence Score {} \n".format(scale,self.clf.decision_function(fd))
-                print "%.9f" % (self.clf.decision_function(fd))
+                # print  "Detection:: Location -> ({}, {})".format(x, y)
+                # print "Scale ->  {} | Confidence Score {} \n".format(scale,self.clf.decision_function(fd))
+                # print "%.9f" % (self.clf.decision_function(fd))
                 detections.append((x, y, self.clf.decision_function(fd),
                     int(self.min_wdw_sz[0]),
                     int(self.min_wdw_sz[1])))
@@ -75,7 +76,13 @@ class Detector(object):
         detections = nms(detections, threshold)
 
         # Display the results after performing NMS
-        for (x_tl, y_tl, _, w, h) in detections:
+        for (x_tl, y_tl, decision, w, h) in detections:
             # Draw the detections
-            cv2.rectangle(clone, (x_tl, y_tl), (x_tl+w,y_tl+h), (255, 255, 0), thickness=2)
+            if decision > 0.5:
+                cv2.rectangle(clone, (x_tl, y_tl), (x_tl+w,y_tl+h), (255, 255, 0), thickness=3)
+            else:
+                cv2.rectangle(clone, (x_tl, y_tl), (x_tl+w,y_tl+h), (255, 255, 0), thickness=1)
+            crop_image = image[y_tl: y_tl+h, x_tl: x_tl+w]
+            cv2.imwrite("capture/crop" + str(self.count) + ".jpg", crop_image)
+            self.count+=1
         return clone

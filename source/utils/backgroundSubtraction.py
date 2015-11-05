@@ -19,7 +19,7 @@ class BackgroundSubtraction(object):
         fgmask = self.fgbg.apply(image, learningRate=0)
         contours, hiararchy = cv2.findContours(fgmask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         maskBad = np.ones(fgmask.shape[:2], dtype="uint8") * 255
-        maskGood = np.ones(fgmask.shape[:2], dtype="uint8")
+        maskGood = np.zeros(fgmask.shape[:2], dtype="uint8")
 
         for c in contours:
             if self.is_contour_bad(c):
