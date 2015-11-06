@@ -10,7 +10,7 @@ __author__ = 'huybu'
 
 # create dgram udp socket
 try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    pi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 except socket.error:
     print 'Failed to create socket'
     sys.exit()
@@ -23,18 +23,18 @@ count = 0
 
 try:
     # Set the whole string
-    s.sendto(const.CMD_CONNECT, (HOST, PORT))
+    pi_socket.sendto(const.CMD_CONNECT, (HOST, PORT))
 
     # receive data from client (data, addr)
     first = None
     while True:
         # try:
 
-            d = s.recvfrom(50000)
+            d = pi_socket.recvfrom(50000)
             count += 1
             if count == 1:
                 first = time.time()
-            reply = zlib.decompress(d[0])
+            reply = (d[0])
             # reply = d[0]
             addr = d[1]
             arr = reply.split('daicahuy')
