@@ -15,7 +15,7 @@ class Detector(object):
         self.step_size = step_size
         self.downscale = downscale
         self.clf = joblib.load(model_path)
-
+        self.sizeImg = 150
 
     def sliding_window(self, image, window_size, step_size):
         '''
@@ -79,3 +79,49 @@ class Detector(object):
             # Draw the detections
             cv2.rectangle(clone, (x_tl, y_tl), (x_tl+w,y_tl+h), (255, 255, 0), thickness=2)
         return clone
+
+    def CheckRectDetect(self,pon1,pon2,pon3,w,h):
+        datah = self.sizeImg - pon3[1]
+        dataw = self.sizeImg - pon3[0]
+        if datah % 2 != 0:
+            data11= int(datah/2)
+            data21 = data11 + 1
+        else:
+            data21 =data11 = int(datah/2)
+        if dataw % 2 != 0:
+            data10= int(dataw/2)
+            data20 = data10 + 1
+        else:
+            data20 =data10= int(dataw/2)
+
+        if pon1[0]-data10 < 0:
+            data20 += (data10 - pon1[0])
+            data10 = pon1[0]
+        if pon1[1]-data11 < 0:
+            data21 += (data11 - pon1[1])
+            data11 = pon1[1]
+        # print pon1,pon2
+        if pon2[0]+data20 >= w:
+            data10 += (data20 - (w - pon2[0]))
+            data20 = (w - pon2[0])
+        if pon2[1]+data21 >= h:
+            data11 += (data21 - (h - pon2[1]))
+            data21 = (h - pon2[1])
+        return (pon1[0]-data10,pon1[1]-data11),(pon2[0]+data20,pon2[1]+data21)
+
+    def detect1(self,image,pon1,pon2,pon3):
+        # image = cv2.Canny(image,100,100)
+        # Load the classifier
+        h,w = image.shape
+        IsHead = False;
+        # List to store the detections
+        datax,datay = self.CheckRectDetect(pon1,pon2,pon3,w,h)
+            # Calculate the HOG features
+        im_window = image[datax[1]:datay[1],datax[0]:datay[0]]
+        fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize)#, normalize)
+        pred = self.clf.predict(fd)
+        # print "predict: " + str(pred)
+        if pred == 1:
+            IsHead = True
+
+        return IsHead
