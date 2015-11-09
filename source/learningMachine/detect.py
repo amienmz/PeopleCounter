@@ -15,6 +15,7 @@ class Detector(object):
         self.step_size = step_size
         self.downscale = downscale
         self.clf = joblib.load(model_path)
+        self.sizeImg = 150
 
 
     def sliding_window(self, image, window_size, step_size):
@@ -38,10 +39,39 @@ class Detector(object):
             for x in xrange(0, image.shape[1], step_size[0]):
                 yield (x, y, image[y:y + window_size[1], x:x + window_size[0]])
 
+
+    def CheckRectDetect(self,pon1,pon2,pon3,w,h):
+        datah = self.sizeImg - pon3[1]
+        dataw = self.sizeImg - pon3[0]
+        if datah % 2 != 0:
+            data11= int(datah/2)
+            data21 = data11 + 1
+        else:
+            data21 =data11 = int(datah/2)
+        if dataw % 2 != 0:
+            data10= int(dataw/2)
+            data20 = data10 + 1
+        else:
+            data20 =data10= int(dataw/2)
+
+        if pon1[0]-data10 < 0:
+            data20 += (data10 - pon1[0])
+            data10 = pon1[0]
+        if pon1[1]-data11 < 0:
+            data21 += (data11 - pon1[1])
+            data11 = pon1[1]
+        # print pon1,pon2
+        if pon2[0]+data20 >= w:
+            data10 += (data20 - (w - pon2[0]))
+            data20 = (w - pon2[0])
+        if pon2[1]+data21 >= h:
+            data11 += (data21 - (h - pon2[1]))
+            data21 = (h - pon2[1])
+        return (pon1[0]-data10,pon1[1]-data11),(pon2[0]+data20,pon2[1]+data21)
+
     def detect(self,image):
         # image = cv2.Canny(image,100,100)
         # Load the classifier
-
         # List to store the detections
         detections = []
         # The current scale of the image
@@ -60,6 +90,7 @@ class Detector(object):
             pred = self.clf.predict(fd)
             # print "predict: " + str(pred)
             if pred == 1:
+                IsHead = True
                 print  "Detection:: Location -> ({}, {})".format(x, y)
                 print "Scale ->  {} | Confidence Score {} \n".format(scale,self.clf.decision_function(fd))
                 print "%.9f" % (self.clf.decision_function(fd))
@@ -79,3 +110,24 @@ class Detector(object):
             # Draw the detections
             cv2.rectangle(clone, (x_tl, y_tl), (x_tl+w,y_tl+h), (255, 255, 0), thickness=2)
         return clone
+
+    def detect1(self,image,pon1,pon2,pon3):
+        h,w = image.shape
+        datapos = self.CheckRectDetect(pon1,pon2,pon3,w,h)
+        im_window = image[datapos[0][1]:datapos[1][1],datapos[0][0]:datapos[1][0]]
+        # Load the classifier
+        IsHead = False
+        # List to store the detections
+        detections = []
+        # The current scale of the image
+        # If the width or height of the scaled image is less than
+        # the width or height of the window, then end the iterations.
+
+            # Calculate the HOG features
+        fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize)#, normalize)
+        pred = self.clf.predict(fd)
+        # print "predict: " + str(pred)
+        if pred == 1:
+            IsHead = True
+            # cd.append(detections[-1])
+        return IsHead
