@@ -9,10 +9,12 @@ import argparse as ap
 from nms import nms
 from config import *
 
-im = cv2.imread("../../data/dataset/neg/neg-66.png", 0)
+im = cv2.imread("../../data/dataset/neg/crop382.jpg", 0)
 
 clf = joblib.load(model_train_path)
-fd = hog(im, orientations, pixels_per_cell, cells_per_block, visualize)#, normalize)
+fd, hogimage = hog(im, orientations, pixels_per_cell, cells_per_block, True)#, normalize)
+cv2.imwrite("hog.jpg", hogimage)
+print len(fd)
 print clf.predict(fd)
 
 

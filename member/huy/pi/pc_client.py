@@ -31,8 +31,7 @@ class PCClient(threading.Thread):
                 dataRight = numpy.array(cv2.imencode('.jpg', frame_right, self.encode_param)[1])
                 dataLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1])
                 stringData = dataRight.tostring() + "daicahuy" + dataLeft.tostring()
-                compressedData = zlib.compress(stringData)
-                self.udpSocket.sendto(compressedData, self.address)
+                self.udpSocket.sendto(stringData, self.address)
                 cv2.waitKey(1)
             except Exception, ex:
                 print 'stop client exception'
