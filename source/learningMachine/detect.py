@@ -83,6 +83,8 @@ class Detector(object):
     def CheckRectDetect(self,pon1,pon2,pon3,w,h):
         datah = self.sizeImg - pon3[1]
         dataw = self.sizeImg - pon3[0]
+        if datah < 0 or dataw < 0:
+            return None,None
         if datah % 2 != 0:
             data11= int(datah/2)
             data21 = data11 + 1
@@ -116,6 +118,8 @@ class Detector(object):
         IsHead = False;
         # List to store the detections
         datax,datay = self.CheckRectDetect(pon1,pon2,pon3,w,h)
+        if datax == None:
+            return IsHead
             # Calculate the HOG features
         im_window = image[datax[1]:datay[1],datax[0]:datay[0]]
         fd = hog(im_window, orientations, pixels_per_cell, cells_per_block, visualize)#, normalize)
