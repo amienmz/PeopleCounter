@@ -27,7 +27,7 @@ block_matcher = depthmapCalculator.get_block_macher()
 backgroundSubtraction = BackgroundSubtraction()
 
 # init detector
-detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
+detector = Detector(min_window_size=(150, 150), step_size=(10, 10), downscale=1)
 
 # subtract moving object
 imgObjectMoving = ObjectMoving(150,150,10)
@@ -44,9 +44,12 @@ while True:
         mask, display = backgroundSubtraction.compute(depthmap)
         # cv2.imshow("back1", mask)
         if count>74:
-            im_detected = detector.detect(display)
+            if np.sum(display)>100:
+                count += 1
+                # cv2.imwrite('capture/img' + str(count)+'.jpg', display)
+                # im_detected = detector.detect(display)
         # cv2.imshow("back", display)
-            cv2.imshow("back", im_detected)
+        #         cv2.imshow("back", im_detected)
     # print "-----------------------------" + str(count)
 
 

@@ -18,7 +18,7 @@ Set the config variable.
 
 # HOG
 min_wdw_sz = (150, 150)
-step_size = (30, 30)
+step_size = (10, 10)
 orientations = 8
 pixels_per_cell = (15, 15)
 cells_per_block = (1, 1)
