@@ -3,6 +3,8 @@ from source.utils.depthmapCalculator import DepthmapCalculator
 from source.utils.videoStreamer import VideoStreamer
 from source.utils.backgroundSubtraction import BackgroundSubtraction
 from source.utils.ObjectMoving import ObjectMoving
+from source.utils.detectObject import DetectMoving
+from source.utils.trackingObject import TrackingObj
 import numpy as np
 import cv2
 from source.learningMachine.detect import Detector
@@ -27,14 +29,20 @@ block_matcher = depthmapCalculator.get_block_macher()
 backgroundSubtraction = BackgroundSubtraction()
 
 # init detector
-detector = Detector(min_window_size=(150, 150), step_size=(10, 10), downscale=1)
+detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
+
+#init tracking
+trackObj = TrackingObj()
 
 # subtract moving object
-imgObjectMoving = ObjectMoving(150,150,10)
+imgObjectMoving = ObjectMoving(150,150,30)
 
+detectMoving = DetectMoving(150)
 
 # if videoStreamer.connect_pi():
 count = 0
+font = cv2.FONT_HERSHEY_SIMPLEX
+cdetect = 0
 while True:
     # image_left, image_right = videoStreamer.get_image_from_pi()
     image_left, image_right = streamer.get_image_from_video(videoLeft,videoRight)
@@ -43,25 +51,52 @@ while True:
     if count > 1:
         mask, display = backgroundSubtraction.compute(depthmap)
         # cv2.imshow("back1", mask)
-        if count>74:
-            if np.sum(display)>100:
-                count += 1
-                # cv2.imwrite('capture/img' + str(count)+'.jpg', display)
-                # im_detected = detector.detect(display)
-        # cv2.imshow("back", display)
+        # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
+        # if res:
+        #     # cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
+        #     if count>74:
+        #         im_detected = detector.detect(display[pon1[1]:pon2[1],pon1[0]:pon2[0]])
+        #     # cv2.imshow("back", display)
         #         cv2.imshow("back", im_detected)
+        trackObj.resetTracking()
+        data,data150 = detectMoving.detectObjectInImage(display)
+        # if len(data150) > 0:
+        #     for y in data150:
+        #         imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+        #         cv2.imwrite("Image/"+str(count)+'.jpg', imgx)
+
+        if len(data) > 0:
+            for x in data:
+                # print x[0], x[1]
+                # print x[1][0] - x[0][0], x[1][1] - x[0][1]
+                # ckObj = trackObj.check_Obj(x[0],x[2])
+                # if ckObj == False:
+                #     cdetect+=1
+                #     print cdetect
+                if detector.detect1(display,x[0],x[1],x[2]):
+                    trackObj.trackingObj(x[0],x[2])
+                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
+                # else:
+                #     cv2.rectangle(display,x[0], x[1],(255,255,255), 2)
+        trackObj.remove_track()
+        cv2.line(image_left,(0,20),(352,20),(255,255,255),1)
+        cv2.line(image_left,(0,150),(352,150),(255,255,255),1)
+        cv2.line(image_left,(0,270),(352,270),(255,255,255),1)
+        cv2.putText(image_left,'In: %i'%trackObj.InSh,(50,180), font, 0.5,(255,255,255),1)
+        cv2.putText(image_left,'Out: %i'%trackObj.OutSh,(200,180), font, 0.5,(255,255,255),1)
+        cv2.imshow("back", image_left)
+
     # print "-----------------------------" + str(count)
 
-
-    # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
     # if res:
     #     cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
-    # cv2.imshow("back", display)
+
     count+=1
     char = cv2.waitKey(1)
     if (char == 99):
     #     count += 1
-    #     cv2.imwrite('capture/img' + str(count)+'.png', display)
+    #     cv2.imwrite(str(count)+'.jpg', display)
+        print trackObj.InSh,trackObj.OutSh
         cv2.waitKey(0)
     if (char == 27):
         break
