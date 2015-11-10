@@ -43,11 +43,12 @@ class DetectMoving(object):
         else:
             return True
     def detectObjectInImage(self,image):
-        # h,w = image.shape
+        h,w = image.shape
         opening = cv2.morphologyEx(image.copy(),cv2.MORPH_OPEN,self.kernel, iterations = 3)
         re,thresh1 = cv2.threshold(opening,75,255,cv2.THRESH_BINARY)
         contours, hierarchy = cv2.findContours(thresh1,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         PosObj = []
+        PosObj150 = []
         for cn in contours:
             ver = cv2.boundingRect(cn)
             if cv2.contourArea(cn) > 500:
@@ -61,4 +62,5 @@ class DetectMoving(object):
                 # PosObj.append((self.CheckRectDetect(ponto1,ponto2,ponto3,w,h)))
                 if self.locRec(ponto1,ponto2):
                     PosObj.append((ponto1,ponto2,ponto3))
-        return  PosObj
+                    PosObj150.append((self.CheckRectDetect(ponto1,ponto2,ponto3,w,h)))
+        return  PosObj,PosObj150

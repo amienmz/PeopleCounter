@@ -59,7 +59,12 @@ while True:
         #     # cv2.imshow("back", display)
         #         cv2.imshow("back", im_detected)
         trackObj.resetTracking()
-        data = detectMoving.detectObjectInImage(display)
+        data,data150 = detectMoving.detectObjectInImage(display)
+        # if len(data150) > 0:
+        #     for y in data150:
+        #         imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+        #         cv2.imwrite("Image/"+str(count)+'.jpg', imgx)
+
         if len(data) > 0:
             for x in data:
                 # print x[0], x[1]
@@ -68,18 +73,18 @@ while True:
                 # if ckObj == False:
                 #     cdetect+=1
                 #     print cdetect
-                    if detector.detect1(display,x[0],x[1],x[2]):
-                        trackObj.trackingObj(x[0],x[2])
-                        cv2.rectangle(display,x[0], x[1],(255,255,255), 2)
+                if detector.detect1(display,x[0],x[1],x[2]):
+                    trackObj.trackingObj(x[0],x[2])
+                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                 # else:
                 #     cv2.rectangle(display,x[0], x[1],(255,255,255), 2)
         trackObj.remove_track()
-        cv2.line(display,(0,20),(352,20),(255,255,255),1)
-        cv2.line(display,(0,150),(352,150),(255,255,255),1)
-        cv2.line(display,(0,270),(352,270),(255,255,255),1)
-        cv2.putText(display,'In: %i'%trackObj.InSh,(50,180), font, 0.5,(255,255,255),1)
-        cv2.putText(display,'Out: %i'%trackObj.OutSh,(200,180), font, 0.5,(255,255,255),1)
-        cv2.imshow("back", display)
+        cv2.line(image_left,(0,20),(352,20),(255,255,255),1)
+        cv2.line(image_left,(0,150),(352,150),(255,255,255),1)
+        cv2.line(image_left,(0,270),(352,270),(255,255,255),1)
+        cv2.putText(image_left,'In: %i'%trackObj.InSh,(50,180), font, 0.5,(255,255,255),1)
+        cv2.putText(image_left,'Out: %i'%trackObj.OutSh,(200,180), font, 0.5,(255,255,255),1)
+        cv2.imshow("back", image_left)
 
     # print "-----------------------------" + str(count)
 
