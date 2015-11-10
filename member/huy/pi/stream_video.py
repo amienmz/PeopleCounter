@@ -66,13 +66,15 @@ while True:
         print "connect from " + address[const.POS_IP]
         if data == const.CMD_CONNECT:
             stop_client_thread()
-            capture_right = cv2.VideoCapture(0)
+            capture_right = cv2.VideoCapture('../../../Datas/outputR24.avi')
             capture_right.set(3, 352)
             capture_right.set(4, 288)
-            # capture_left = cv2.VideoCapture(1)
-            # capture_left.set(3, 352)
-            # capture_left.set(4, 288)
-            client = PCClient(address, capture_right, capture_right, udpSocket)
+            capture_right.set(5, 24)
+            capture_left = cv2.VideoCapture('../../../Datas/outputL24.avi')
+            capture_left.set(3, 352)
+            capture_left.set(4, 288)
+            capture_left.set(5, 24)
+            client = PCClient(address, capture_right, capture_left, udpSocket)
             client.start()
     except KeyboardInterrupt:
         print 'Interrupted catched'
