@@ -7,3 +7,4 @@ POS_PORT = 1
 CMD_CONNECT = 'connect'
 CMD_DISCONNECT = 'disconnect'
 CMD_OK = 'ok'
+PORT = 8888  # Arbitrary non-privileged port
