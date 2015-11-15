@@ -1,5 +1,5 @@
 __author__ = 'pc'
-from stereovision.calibration import StereoCalibration
+from source.stereovision.calibration import StereoCalibration
 import cv2
 
 class DepthmapCalculator(object):
