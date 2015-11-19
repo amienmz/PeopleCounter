@@ -28,7 +28,7 @@ class FrmCamera(object):
             with self.lock:
                 frame = None
                 if self.queue.empty():
-                    time.sleep(0.05)
+                    time.sleep(0.2)
                 else:
                     frame = self.queue.get()
                     # if frame is None:

@@ -11,7 +11,7 @@ from config import *
 
 if __name__ == "__main__":
      #detete old data before train
-    os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/models/*")
+    # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/models/*")
 
     pos_feat_path = "../../data/features/pos"
     neg_feat_path = "../../data/features/neg"

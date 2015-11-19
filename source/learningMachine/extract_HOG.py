@@ -12,8 +12,8 @@ from config import *
 
 if __name__ == "__main__":
     #detete old data before extract
-    os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/features/pos/*")
-    os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/features/neg/*")
+    # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/features/pos/*")
+    # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/features/neg/*")
 
     pos_im_path = "../../data/dataset/pos"
     neg_im_path = "../../data/dataset/neg"
