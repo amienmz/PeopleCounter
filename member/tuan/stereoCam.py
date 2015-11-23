@@ -2,15 +2,15 @@ __author__ = 'pc'
 import cv2
 
 
-video1 = cv2.VideoCapture(0) #right
-video1.set(3,640)
-video1.set(4,480)
+video1 = cv2.VideoCapture(1) #right
+video1.set(3,352)
+video1.set(4,288)
 # saveVideoL = cv2.VideoWriter("videoL.mpg",-1, 10, (640,480))
 
 #
-video2 = cv2.VideoCapture(1)
-video2.set(3,640)
-video2.set(4,480)
+video2 = cv2.VideoCapture(2)
+video1.set(3,352)
+video1.set(4,288)
 # saveVideoR = cv2.VideoWriter("videoR.mpg",-1, 10, (640,480))
 
 loop = True
@@ -22,15 +22,15 @@ while(loop == True):
     # saveVideoR.write(frame2)
 
     cv2.imshow("video1", frame1)
-    # cv2.imshow("video2", frame2)
+    cv2.imshow("video2", frame2)
 
-    char = cv2.waitKey(99)
+    char = cv2.waitKey(1)
     if (char == 99):
         # cv2.imwrite("R.png", frame1)
         # cv2.imwrite("L.png", frame2)
         loop = False
 
 video1.release()
-video2.release()
+# video2.release()
 
 cv2.destroyAllWindows()

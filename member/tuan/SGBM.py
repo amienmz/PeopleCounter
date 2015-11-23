@@ -15,11 +15,13 @@ def is_contour_bad(c):
 
 
 #
-video1 = cv2.VideoCapture('../../Datas/outputR24.avi') #right
+video1 = cv2.VideoCapture('../../data/outputR24.avi') #right
+# video1 = cv2.VideoCapture(1) #right
 video1.set(3,352)
 video1.set(4,288)
 
-video2 = cv2.VideoCapture('../../Datas/outputL24.avi')
+video2 = cv2.VideoCapture('../../data/outputL24.avi')
+# video2 = cv2.VideoCapture(0)
 video2.set(3,352)
 video2.set(4,288)
 
@@ -27,9 +29,9 @@ video2.set(4,288)
 # calibration files to disk. You can also initialize an empty calibration and
 # calculate the calibration, or you can clone another calibration from one in
 # memory
-calibration = StereoCalibration(input_folder='../../Datas/data')
+calibration = StereoCalibration(input_folder='../../data/calibration2')
 
-
+#
 # cv2.namedWindow('Tuner')
 # cv2.createTrackbar('minDisparity','Tuner',0,255,nothing) #### 78
 # cv2.createTrackbar('numDisparities','Tuner',1,16,nothing) # divide by 16 = 2
@@ -48,7 +50,7 @@ calibration = StereoCalibration(input_folder='../../Datas/data')
 # cv2.createTrackbar('bilateralFilter','Post filter', 0, 21, nothing())
 # cv2.createTrackbar('GaussianBlur','Post filter', 0, 21, nothing())
 
-minDisparity = 8
+minDisparity = 10
 numDisparities = 3 *16
 SADWindowSize = 1 #old number
 P1 = 35
@@ -63,6 +65,7 @@ fullDP = True
 fgbg = cv2.BackgroundSubtractorMOG2(history=10, varThreshold=100, bShadowDetection=1)
 
 while 1:
+    print "d"
     ret1, frame1 = video1.read()
     ret2, frame2 = video2.read()
 
@@ -93,14 +96,16 @@ while 1:
     disparity = block_matcher.compute(rectified_pair[0], rectified_pair[1])
 
     display = cv2.normalize(disparity,disparity, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-
+    cv2.imshow("0", rectified_pair[0])
+    cv2.imshow("1", rectified_pair[1])
+    # cv2.imshow("s", display)
     # cv2.imshow("Before filter", display)
     # (T, mask) = cv2.threshold(display, 50, 255, cv2.THRESH_BINARY_INV)
     # mask = cv2.medianBlur(mask,5)
     # cv2.imshow("mask1", mask)
     # mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
     # display = cv2.inpaint(display, mask, 3, cv2.INPAINT_TELEA)
-    display = cv2.medianBlur(display, 5)
+    # display = cv2.medianBlur(display, 5)
 
     # cv2.line(display,(0,144-60), (3352,144-60), (255,0,0),1)
     # cv2.line(display,(0,144+60), (3352,144+60), (255,0,0),1)
@@ -141,7 +146,7 @@ while 1:
     for c in contours:
         cv2.drawContours(maskGood, [c], 0, 255, -1)
 
-    cv2.imshow("mask good", maskGood)
+    # cv2.imshow("mask good", maskGood)
     display = cv2.bitwise_and(display, maskGood)
     cv2.imshow("mask3", display)
 
