@@ -52,12 +52,15 @@ class TrackingObj(object):
 
 
     def check_withLine(self,y,h):
-        if y <= 20 <= y+h:
+        if y <= 30 <= y+h:
             return 0
+
+        elif y <= 260 <= y+h:
+            return 2
+
         elif y <= 150 <= y+h:
             return 1
-        elif y <= 270 <= y+h:
-            return 2
+
 
     def check_Obj(self,pon1,pon2):
         y, x = [pon1[1],pon1[0]]
