@@ -78,6 +78,7 @@ class DetectMoving(object):
     #     return  PosObj
 
     def detectObjectInImage(self,img):
+        h,w = img.shape
         image = img.copy()
         image = cv2.medianBlur(image, 31)
         image = cv2.resize(image, (image.shape[1]/20, image.shape[0]/20))
@@ -123,6 +124,7 @@ class DetectMoving(object):
                     # print "[" + str(y) + "," + str(x) + "] "+ str(image[y,x]) + "  : " + str(y_next) + "," + str(x_next) + " : " +str(image[y,x]) +" | "+ str(output[y_next, x_next])
         output = np.uint8(output)
         PosObj = []
+        PosObj150 = []
         (T, output) = cv2.threshold(output, 1, 255, cv2.THRESH_BINARY)
         output = cv2.medianBlur(output, 3)
         contours, hierarchy = cv2.findContours(output,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -139,4 +141,5 @@ class DetectMoving(object):
                 # data1,data2 = CheckRectDetect(ponto1,ponto2,ponto3,352,288)
                 # cv2.rectangle(imagex, data1, data2,(255,255,255), 1)
                 PosObj.append((ponto1,ponto2,ponto3))
-        return  PosObj
+                PosObj150.append((self.CheckRectDetect(ponto1,ponto2,ponto3,w,h)))
+        return  PosObj, PosObj150
