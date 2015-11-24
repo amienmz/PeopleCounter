@@ -17,7 +17,7 @@ streamer = VideoStreamer('../data/outputL24.avi','../data/outputR24.avi')
 videoLeft, videoRight = streamer.get_video_data()
 
 # load calibration data to calculate depth map
-depthmapCalculator = DepthmapCalculator('../data/calibration')
+depthmapCalculator = DepthmapCalculator('../data/calibration2')
 
 # calibrate camera
 calibration = depthmapCalculator.get_calibration()
@@ -47,10 +47,15 @@ while True:
     # image_left, image_right = videoStreamer.get_image_from_pi()
     image_left, image_right = streamer.get_image_from_video(videoLeft,videoRight)
     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
-    # cv2.imshow("depthmap", depthmap)
+    # depthmap = 255 - depthmap
+    cv2.imshow("depthmap", depthmap)
     if count > 1:
         mask, display = backgroundSubtraction.compute(depthmap)
-        # cv2.imshow("back1", mask)
+        if np.sum(display) > 100:
+            print "capture" + str(count)
+            # cv2.imwrite("capture/" + str(count) + ".jpg", display)
+
+        cv2.imshow("back1", display)
         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
         # if res:
         #     # cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
@@ -59,14 +64,17 @@ while True:
         #     # cv2.imshow("back", display)
         #         cv2.imshow("back", im_detected)
         trackObj.resetTracking()
-        data,data150 = detectMoving.detectObjectInImage(display)
-        # if len(data150) > 0:
-        #     for y in data150:
-        #         imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-        #         cv2.imwrite("Image/"+str(count)+'.jpg', imgx)
+        data, data150 = detectMoving.detectObjectInImage(display)
+        if len(data150) > 0:
+            for y in data150:
+                print y
+                imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
+                # cv2.imwrite("image/"+str(count)+'.jpg', imgx)
 
         if len(data) > 0:
             for x in data:
+                print x
                 # print x[0], x[1]
                 # print x[1][0] - x[0][0], x[1][1] - x[0][1]
                 # ckObj = trackObj.check_Obj(x[0],x[2])
@@ -75,15 +83,15 @@ while True:
                 #     print cdetect
                 if detector.detect1(display,x[0],x[1],x[2]):
                     trackObj.trackingObj(x[0],x[2])
-                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
+                    # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                 # else:
                 #     cv2.rectangle(display,x[0], x[1],(255,255,255), 2)
         trackObj.remove_track()
-        cv2.line(image_left,(0,20),(352,20),(255,255,255),1)
+        cv2.line(image_left,(0,30),(352,30),(255,255,255),1)
         cv2.line(image_left,(0,150),(352,150),(255,255,255),1)
-        cv2.line(image_left,(0,270),(352,270),(255,255,255),1)
-        cv2.putText(image_left,'In: %i'%trackObj.InSh,(50,180), font, 0.5,(255,255,255),1)
-        cv2.putText(image_left,'Out: %i'%trackObj.OutSh,(200,180), font, 0.5,(255,255,255),1)
+        cv2.line(image_left,(0,260),(352,260),(255,255,255),1)
+        cv2.putText(image_left,'In: %i'%trackObj.InSh,(160,20), font, 0.5,(255,255,255),1)
+        cv2.putText(image_left,'Out: %i'%trackObj.OutSh,(160,276), font, 0.5,(255,255,255),1)
         cv2.imshow("back", image_left)
 
     # print "-----------------------------" + str(count)
