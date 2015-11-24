@@ -32,7 +32,7 @@ normalize = True
 # path
 pos_feat_ph = "../../data/features/pos"
 neg_feat_ph = "../../data/features/neg"
-model_path = "../../data/models/svm.model"
+model_path = "../data/models/svm.model"
 model_train_path = "../../data/models/svm.model"
 
 #nms
