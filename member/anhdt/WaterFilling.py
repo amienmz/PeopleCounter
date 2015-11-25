@@ -36,7 +36,7 @@ def CheckRectDetect(pon1,pon2,pon3,w,h):
         return (pon1[0]-data10,pon1[1]-data11),(pon2[0]+data20,pon2[1]+data21)
 
 
-threshHold = 5
+threshHold = 10
 
 def compare(a, b):
     a = np.int(a)
@@ -54,8 +54,9 @@ def compare(a, b):
 near = np.array([[0,0,1,1,1,-1,-1,-1], [1,-1,0,-1,1,0,1,-1]], np.int8)
 # near = np.array([[0,1],[1,0],[0,-1],[-1,0]], np.int8)
 
-image = cv2.imread('3787.jpg', 0)
+image = cv2.imread('866.jpg', 0)
 image = cv2.medianBlur(image, 31)
+# image = cv2.bilateralFilter(image,9, 75,75)
 # (T, image) = cv2.threshold(image, image.max()-20, 255, cv2.THRESH_BINARY)
 
 # image = cv2.Canny(image, 20,20)
@@ -121,8 +122,24 @@ output = np.uint8(output)
 # output = cv2.cvtColor(output, cv2.COLOR_RGB2GRAY)
 print("--- %s seconds ---" % (time.time() - start_time))
 print output
-(T, output) = cv2.threshold(output, 1, 255, cv2.THRESH_BINARY)
+print output.max()
+
+threshValue = output.max() - 3
+if threshValue < 1:
+    threshValue = 1
+print threshValue
+
+(T, output) = cv2.threshold(output,threshValue, 255, cv2.THRESH_BINARY)
+# output = cv2.resize(output, (output.shape[1]*2, output.shape[0]*2))
+# (T, output) = cv2.threshold(output, 1, 255, cv2.THRESH_BINARY)
 output = cv2.medianBlur(output, 3)
+
+# kernel = np.ones((2,2),np.uint8)
+# output = cv2.erode(output,kernel,iterations = 1)
+
+# output = cv2.resize(output, (output.shape[1]/2, output.shape[0]/2))
+
+# output = cv2.medianBlur(output, 3)
 print output
 contours, hierarchy = cv2.findContours(output,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 for cn in contours:

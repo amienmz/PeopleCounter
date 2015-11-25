@@ -48,13 +48,14 @@ while True:
     image_left, image_right = streamer.get_image_from_video(videoLeft,videoRight)
     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
     # depthmap = 255 - depthmap
+    # depthmap = cv2.medianBlur(depthmap, 3)
     cv2.imshow("depthmap", depthmap)
     if count > 1:
         mask, display = backgroundSubtraction.compute(depthmap)
-        if np.sum(display) > 100:
-            print "capture" + str(count)
+        # if np.sum(display) > 100:
+            # print "capture" + str(count)
             # cv2.imwrite("capture/" + str(count) + ".jpg", display)
-
+        display = cv2.medianBlur(display, 31)
         cv2.imshow("back1", display)
         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
         # if res:

@@ -9,7 +9,7 @@ class DetectMoving(object):
         self.WIDTH_PCONS = 50
         self.HEIGHT_PCONS = 50
         self.near = np.array([[0,0,1,1,1,-1,-1,-1], [1,-1,0,-1,1,0,1,-1]], np.int8)
-        self.threshHold = 5
+        self.threshHold = 10
 
     def compare(self,a, b):
         a = np.int(a)
@@ -125,7 +125,10 @@ class DetectMoving(object):
         output = np.uint8(output)
         PosObj = []
         PosObj150 = []
-        (T, output) = cv2.threshold(output, 1, 255, cv2.THRESH_BINARY)
+        threshValue = output.max() - 3
+        if threshValue < 1:
+            threshValue = 1
+        (T, output) = cv2.threshold(output, threshValue, 255, cv2.THRESH_BINARY)
         output = cv2.medianBlur(output, 3)
         contours, hierarchy = cv2.findContours(output,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for cn in contours:
