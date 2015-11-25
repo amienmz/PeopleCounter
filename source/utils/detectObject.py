@@ -21,6 +21,78 @@ class DetectMoving(object):
         else:
             return -1
 
+    def resize4detect(self,pon1,pon2,pon3,w,h):
+        datah = 50 - pon3[1]
+        dataw = 60 - pon3[0]
+        data11 = data10 = data20 = data21 = 0
+        if datah < 0 or dataw < 0:
+            if datah < 0:
+                datah1 = -datah
+                if datah1 % 2 != 0:
+                    data11= int(datah1/2)
+                    data21 = data11 + 1
+                else:
+                    data21 =data11 = int(datah1/2)
+                if dataw >= 0:
+                    if dataw % 2 != 0:
+                        data10= int(dataw/2)
+                        data20 = data10 + 1
+                    else:
+                        data20 =data10= int(dataw/2)
+                    if pon1[0]-data10 < 0:
+                        data20 += (data10 - pon1[0])
+                        data10 = pon1[0]
+                    if pon2[0]+data20 >= w:
+                        data10 += (data20 - (w - pon2[0]))
+                        data20 = (w - pon2[0])
+                    return (pon1[0]-data10,pon1[1]+data11),(pon2[0]+data20,pon2[1]-data21)
+            if dataw < 0:
+                dataw1 = -dataw
+                if dataw1 % 2 != 0:
+                    data10= int(dataw1/2)
+                    data20 = data10 + 1
+                else:
+                    data20 =data10= int(dataw1/2)
+                if datah >= 0:
+                    if datah % 2 != 0:
+                        data11= int(datah/2)
+                        data21 = data11 + 1
+                    else:
+                        data21 =data11 = int(datah/2)
+                    if pon1[1]-data11 < 0:
+                        data21 += (data11 - pon1[1])
+                        data11 = pon1[1]
+                    if pon2[1]+data21 >= h:
+                        data11 += (data21 - (h - pon2[1]))
+                        data21 = (h - pon2[1])
+                    return (pon1[0]+data10,pon1[1]-data11),(pon2[0]-data20,pon2[1]+data21)
+            return (pon1[0]+data10,pon1[1]+data11),(pon2[0]-data20,pon2[1]-data21)
+        if datah % 2 != 0:
+            data11= int(datah/2)
+            data21 = data11 + 1
+        else:
+            data21 =data11 = int(datah/2)
+        if dataw % 2 != 0:
+            data10= int(dataw/2)
+            data20 = data10 + 1
+        else:
+            data20 =data10= int(dataw/2)
+
+        if pon1[0]-data10 < 0:
+            data20 += (data10 - pon1[0])
+            data10 = pon1[0]
+        if pon1[1]-data11 < 0:
+            data21 += (data11 - pon1[1])
+            data11 = pon1[1]
+        # print pon1,pon2
+        if pon2[0]+data20 >= w:
+            data10 += (data20 - (w - pon2[0]))
+            data20 = (w - pon2[0])
+        if pon2[1]+data21 >= h:
+            data11 += (data21 - (h - pon2[1]))
+            data21 = (h - pon2[1])
+        return (pon1[0]-data10,pon1[1]-data11),(pon2[0]+data20,pon2[1]+data21)
+
     def CheckRectDetect(self,pon1,pon2,pon3,w,h):
         datah = self.sizeImg - pon3[1]
         dataw = self.sizeImg - pon3[0]
@@ -49,6 +121,8 @@ class DetectMoving(object):
             data11 += (data21 - (h - pon2[1]))
             data21 = (h - pon2[1])
         return (pon1[0]-data10,pon1[1]-data11),(pon2[0]+data20,pon2[1]+data21)
+
+
     def locRec(seft,pon1,pon2):
         if pon2[1] - pon1[1] < seft.WIDTH_PCONS or pon2[0] - pon1[0] < seft.WIDTH_PCONS:
             return False
@@ -125,9 +199,11 @@ class DetectMoving(object):
         output = np.uint8(output)
         PosObj = []
         PosObj150 = []
-        threshValue = output.max() - 3
-        if threshValue < 1:
+
+        threshValue = output.max()-2
+        if threshValue <1:
             threshValue = 1
+
         (T, output) = cv2.threshold(output, threshValue, 255, cv2.THRESH_BINARY)
         output = cv2.medianBlur(output, 3)
         contours, hierarchy = cv2.findContours(output,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -140,9 +216,35 @@ class DetectMoving(object):
                 ponto1 = (rect[0]*20, rect[1]*20)
                 ponto2 = ((rect[0]+ rect[2])*20,(rect[1]+rect[3])*20)
                 ponto3 = (ponto2[0]-ponto1[0],ponto2[1]-ponto1[1])
+                if ponto3[0] > self.sizeImg*2:
+                    pontow = ponto3[0]/2
+                    ponton11 = (ponto1[0], ponto1[1])
+                    ponton12 = (ponton11[0]+pontow,ponto2[1])
+                    ponton13 = (pontow,ponto3[1])
+                    datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
+                    PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                    ponton11 = (ponton12[0], ponto1[1])
+                    ponton12 = (ponton11[0]+pontow,ponto2[1])
+                    ponton13 = (pontow,ponto3[1])
+                    datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
+                    PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                # elif ponto3[1] > self.sizeImg and ponto3[0] < self.sizeImg*2:
+                #     pontoh = ponto3[1]/2
+                #     ponton11 = (ponto1[0], ponto1[1])
+                #     ponton12 = (ponto2[0],ponton11[1]+pontoh)
+                #     ponton13 = (ponto3[0],pontoh)
+                #     datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
+                #     PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                #     ponton11 = (ponto1[0], ponton12[1])
+                #     ponton12 = (ponto2[0],ponton11[1]+pontoh)
+                #     ponton13 = (ponto3[0],pontoh)
+                #     datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
+                #     PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                else:
                 # cv2.rectangle(imagex, ponto1, ponto2,(255,255,255), 2)
                 # data1,data2 = CheckRectDetect(ponto1,ponto2,ponto3,352,288)
                 # cv2.rectangle(imagex, data1, data2,(255,255,255), 1)
-                PosObj.append((ponto1,ponto2,ponto3))
-                PosObj150.append((self.CheckRectDetect(ponto1,ponto2,ponto3,w,h)))
+                    datax,datay = self.resize4detect(ponto1,ponto2,ponto3,w,h)
+                    PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                    PosObj150.append((self.CheckRectDetect(ponto1,ponto2,ponto3,w,h)))
         return  PosObj, PosObj150
