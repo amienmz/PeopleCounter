@@ -7,6 +7,7 @@ class TrackingObj(object):
         self.allObj = []
         self.InSh = 0
         self.OutSh = 0
+        self.maxPass = 10
 
 
     def resetTracking(self):
@@ -17,7 +18,7 @@ class TrackingObj(object):
     def remove_track(self):
         for data in self.allObj:
             if data[4] == False:
-                if data[6] < 3:
+                if data[6] < self.maxPass:
                     data[6] += 1
                 else:
                     self.allObj.remove(data)
@@ -52,10 +53,10 @@ class TrackingObj(object):
 
 
     def check_withLine(self,y,h):
-        if y <= 30 <= y+h:
+        if y <= 60 <= y+h:
             return 0
 
-        elif y <= 260 <= y+h:
+        elif y <= 240 <= y+h:
             return 2
 
         elif y <= 150 <= y+h:
