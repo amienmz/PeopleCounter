@@ -81,15 +81,20 @@ while True:
                 # if ckObj == False:
                 #     cdetect+=1
                 #     print cdetect
-                # if detector.detect1(display,x[0],x[1],x[2]):
-                trackObj.trackingObj(x[0],x[2])
+                cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
+                if detector.detect1(display,x[0],x[1],x[2]):
+                    trackObj.trackingObj(x[0],x[2])
                     # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                 # else:
-                cv2.rectangle(image_left,x[0], x[1],(255,255,255), 2)
+                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 5)
+                else:
+                    y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
+                    imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                    cv2.imwrite("image/failed/"+str(count)+'.jpg', imgx)
         trackObj.remove_track()
-        cv2.line(image_left,(0,60),(352,60),(255,255,255),1)
+        cv2.line(image_left,(0,144-70),(352,144-70),(255,255,255),1)
         cv2.line(image_left,(0,150),(352,150),(255,255,255),1)
-        cv2.line(image_left,(0,240),(352,240),(255,255,255),1)
+        cv2.line(image_left,(0,144+70),(352,144+70),(255,255,255),1)
         cv2.putText(image_left,'In: %i'%trackObj.InSh,(160,20), font, 0.5,(255,255,255),1)
         cv2.putText(image_left,'Out: %i'%trackObj.OutSh,(160,276), font, 0.5,(255,255,255),1)
         cv2.imshow("back", image_left)
@@ -98,7 +103,7 @@ while True:
 
     # if res:
     #     cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
-    print trackObj.allObj
+    # print trackObj.allObj
     count+=1
     char = cv2.waitKey(1)
     if (char == 99):

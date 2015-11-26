@@ -8,6 +8,9 @@ class TrackingObj(object):
         self.InSh = 0
         self.OutSh = 0
         self.maxPass = 10
+        self.topPosition = 144-70
+        self.midPosition = 144
+        self.botPosition = 144+70
 
 
     def resetTracking(self):
@@ -53,13 +56,13 @@ class TrackingObj(object):
 
 
     def check_withLine(self,y,h):
-        if y <= 60 <= y+h:
+        if y <= self.topPosition <= y+h:
             return 0
 
-        elif y <= 240 <= y+h:
+        elif y <= self.botPosition <= y+h:
             return 2
 
-        elif y <= 150 <= y+h:
+        elif y <= self.midPosition <= y+h:
             return 1
 
 

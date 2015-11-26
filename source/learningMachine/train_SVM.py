@@ -34,6 +34,7 @@ if __name__ == "__main__":
     # Load the negative features
     for feat_path in glob.glob(os.path.join(neg_feat_path,"*.feat")):
         fd = joblib.load(feat_path)
+        print len(fd)
         if len(fd) == 800:
             fds.append(fd)
             labels.append(0)
