@@ -1,13 +1,16 @@
+from source.utils import const
+
 __author__ = 'pc'
 import cv2
 import numpy as np
 
 class TrackingObj(object):
-    def __init__(self):
+    def __init__(self, queue_update_pc):
         self.allObj = []
         self.InSh = 0
         self.OutSh = 0
         self.maxPass = 10
+        self.queue_update_pc = queue_update_pc
 
 
     def resetTracking(self):
@@ -111,10 +114,13 @@ class TrackingObj(object):
                     res, ln = self.sysn_line(data,y,h)
                     if res:
                         inout = self.check_in_out(data,ln)
+                        print 'have data'
                         if inout == 0:
                             self.OutSh +=1
+                            self.queue_update_pc.put(const.TYPE_OUT)
                         elif inout == 1:
                             self.InSh +=1
+                            self.queue_update_pc.put(const.TYPE_IN)
                     haveline = True
                     break
         if haveline == False:

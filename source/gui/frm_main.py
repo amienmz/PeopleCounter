@@ -1,20 +1,60 @@
 from multiprocessing import Process
+from re import search
 import numpy
+from numpy.lib.function_base import insert
+from threading import Thread
 
 __author__ = 'huybu'
-import Tkinter as tk
+
+from Tkinter import *
+import ttk
+py3 = 0
 from frm_pi_connection import FrmPiConnection
 import socket
 import source.utils.const as const
 import cv2
 
-class FrmMain(tk.Frame):
-    def __init__(self, parent, threadClient):
-        tk.Frame.__init__(self, parent)
 
-        self.create_gui(parent)
+class FrmMain(Frame):
+    def __init__(self, master, threadClient):
+        Frame.__init__(self, master)
+        self.create_gui(master)
         self.create_socket()
         self.threadClient = threadClient
+        master.wm_title("People Counter")
+        self.thread = Thread(target = self.wait_value_queue)
+        self.thread.start()
+
+    def wait_value_queue(self):
+        count=0
+        while True:
+            count +=1
+            print count
+            type = self.threadClient.queue_update_pc.get()
+            self.master.after(0, func=lambda: self.update_gui(type))
+
+    def update_gui(self, type):
+        peopleIn = int(self.lblIn["text"])
+        peopleOut = int(self.lblOut["text"])
+        if type == const.TYPE_IN:
+            # peopleIn = int(self.strIn.get())
+            # self.lblIn.set.delete(0,END)
+            # self.entryName.insert(0,str(peopleIn+1))
+            peopleIn+=1
+            self.lblIn["text"] = str(peopleIn)
+            pass
+        if type == const.TYPE_OUT:
+            # peopleOut = int(self.strOut.get())
+            # self.entryName.delete(0,END)
+            # self.entryName.insert(0,str(peopleIn+1))
+            peopleOut+=1
+            self.lblOut["text"] = str(peopleOut)
+            pass
+        self.lblStay["text"] = str(peopleIn-peopleOut)
+        self.master.update()
+
+    def test_clicl(self):
+        self.threadClient.queue_update_pc.put(const.TYPE_IN)
 
     def create_socket(self):
         # create dgram udp socket
@@ -23,101 +63,145 @@ class FrmMain(tk.Frame):
         except socket.error:
             print 'Failed to create socket'
 
-
-    def create_gui(self, parent):
-        # panel
-        self.pnl_left = tk.Frame(parent, bg="")
-        self.pnl_right = tk.Frame(parent, bg="")
-        self.pnl_left.pack(side=tk.LEFT, anchor=tk.W, fill=tk.Y)
-        self.pnl_right.pack(side=tk.RIGHT, anchor=tk.E, fill=tk.Y)
-        # create in left panel
-        self.lb_cam = tk.Listbox(self.pnl_left)
-        self.lb_cam.pack(side=tk.LEFT)
-        # lb_cam.insert(tk.END, "a list entry")
-        # for item in ["one", "two", "three", "four"]:
-        #     lb_cam.insert(tk.END, item)
-        # create in right panel
-        # topright_panel = tk.Frame(right_panel, bg="blue")
-        # bottomright_panel = tk.Frame(right_panel, bg="blue")
-        # topright_panel.pack(side=tk.TOP,anchor=tk.N)
-        # bottomright_panel.pack( side=tk.BOTTOM,anchor=tk.S )
-        # insert_button = tk.Button(topright_panel,text="Insert")
-        # insert_button.pack(side=tk.LEFT)
-        # show_button = tk.Button(topright_panel,text="Show")
-        # show_button.pack(side=tk.LEFT)
-        #
-        # test_button = tk.Button(bottomright_panel,text="Test")
-        # test_button.pack()
-        self.txt_total_in = tk.StringVar()
-        self.lbl_total_in = tk.Label(self.pnl_right, textvariable=self.txt_total_in)
-        self.txt_total_in.set("Total in:")
-        self.lbl_total_in.pack()
-        self.txt_total_out = tk.StringVar()
-        self.lbl_total_out = tk.Label(self.pnl_right, textvariable=self.txt_total_out)
-        self.txt_total_out.set("Total out:")
-        self.lbl_total_out.pack()
-        self.btn_insert = tk.Button(self.pnl_right, text="Insert", command=self.insert_click)
-        self.btn_insert.pack()
-        self.btn_show = tk.Button(self.pnl_right, text="Show", command=self.show_click)
-        self.btn_show.pack()
-        self.btn_hide = tk.Button(self.pnl_right, text="Hide")
-        self.btn_hide.pack()
-        self.btn_kill = tk.Button(self.pnl_right, text="Kill")
-        self.btn_kill.pack()
-
-    def show_click(self):
-        p = Process(target=self.test_process)
-        p.start()
-
-    def test_process(self):
-        print 'process OK'
+    def insert_cam(self, ip_address, name):
+        self.lbCameras.insert(END, name+ '-' + ip_address)
+        self._root().update()
 
     def insert_click(self):
-        ip_address = FrmPiConnection(self).show()
-        print ip_address
-        self.threadClient.create_camera(ip_address)
+        ip_address, name_cam = FrmPiConnection(self).show()
+        if ip_address and name_cam:
+            print ip_address
+            self.threadClient.create_camera(ip_address, name_cam)
+            self.insert_cam(ip_address,name_cam)
+
+    def remove_client(self, ip_address):
+        index =0
+        for str in list(self.lbCameras.get(0,END)):
+            if ip_address in str:
+                self.lbCameras.delete(index)
+                return
+            index+=1
+
+    def create_gui(self, master):
+        geom = "395x305+677+267"
+        master.geometry(geom)
+        # panel
+        _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
+        _fgcolor = '#000000'  # X11 color: 'black'
+        _compcolor = '#d9d9d9' # X11 color: 'gray85'
+        _ana1color = '#d9d9d9' # X11 color: 'gray85'
+        _ana2color = '#d9d9d9' # X11 color: 'gray85'
+        font10 = "-family {Segoe UI} -size 14 -weight normal -slant "  \
+            "roman -underline 0 -overstrike 0"
+        font12 = "-family {Courier New} -size 12 -weight normal -slant"  \
+            " roman -underline 0 -overstrike 0"
+        master.configure(background="#d9d9d9")
 
 
-    def image_capture(queue):
-       vidFile = cv2.VideoCapture(0)
-       while True:
-          try:
-             flag, frame=vidFile.read()
-             if flag==0:
-                break
-             queue.put(frame)
-             cv2.waitKey(20)
-          except:
-             continue
+        self.lbCameras = Listbox(master)
+        self.lbCameras.place(relx=0.0, rely=0.0, relheight=1.0, relwidth=0.54)
+        self.lbCameras.configure(background="white")
+        self.lbCameras.configure(disabledforeground="#a3a3a3")
+        self.lbCameras.configure(font=font12)
+        self.lbCameras.configure(foreground="#000000")
+        self.lbCameras.configure(width=214)
 
-    def pi_execute(self,ip_address,pi_socket):
-        try:
-            # Set the whole string
-            pi_socket.sendto(const.CMD_CONNECT, (ip_address, const.PORT))
+        self.Label1 = Label(master)
+        self.Label1.place(relx=0.7, rely=0.07, height=31, width=31)
+        self.Label1.configure(background=_bgcolor)
+        self.Label1.configure(disabledforeground="#a3a3a3")
+        self.Label1.configure(font=font10)
+        self.Label1.configure(foreground="#000000")
+        self.Label1.configure(text='''In :''')
 
-            # receive data from client (data, addr)
-            first = None
-            while True:
-                # try:
-                    d = pi_socket.recvfrom(50000)
-                    reply = (d[0])
-                    # reply = d[0]
-                    addr = d[1]
-                    arr = reply.split('daicahuy')
-                    dataRight = numpy.fromstring(arr[0], dtype='uint8')
-                    dataLeft = numpy.fromstring(arr[1], dtype='uint8')
-                    decimgRight = cv2.imdecode(dataRight, 1)
-                    decimgLeft = cv2.imdecode(dataLeft, 1)
-                    cv2.imshow('SERVER RIGHT', decimgRight)
-                    cv2.imshow('SERVER LEFT', decimgLeft)
-                    # duration = (time.time() - first)
-                    # print " pp: " + str(count / duration) + " p/s" + " duration = " + str(duration)
-                    cv2.waitKey(1)
-                # except:
-                #     print 'Exception: ' + sys.exc_info()[0]
-                #     pass
+        self.Label2 = Label(master)
+        self.Label2.place(relx=0.66, rely=0.16, height=31, width=46)
+        self.Label2.configure(background=_bgcolor)
+        self.Label2.configure(disabledforeground="#a3a3a3")
+        self.Label2.configure(font=font10)
+        self.Label2.configure(foreground="#000000")
+        self.Label2.configure(text='''Out :''')
 
+        self.btnShow = Button(master)
+        self.btnShow.place(relx=0.61, rely=0.79, height=24, width=50)
+        self.btnShow.configure(activebackground="#d9d9d9")
+        self.btnShow.configure(activeforeground="#000000")
+        self.btnShow.configure(background=_bgcolor)
+        self.btnShow.configure(disabledforeground="#a3a3a3")
+        self.btnShow.configure(foreground="#000000")
+        self.btnShow.configure(highlightbackground="#d9d9d9")
+        self.btnShow.configure(highlightcolor="black")
+        self.btnShow.configure(pady="0")
+        self.btnShow.configure(text='''Show''')
+        self.btnShow.configure(width=50)
 
-        except socket.error, msg:
-            print 'Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-            # sys.exit()
+        self.btnHide = Button(master)
+        self.btnHide.place(relx=0.61, rely=0.89, height=24, width=50)
+        self.btnHide.configure(activebackground="#d9d9d9")
+        self.btnHide.configure(activeforeground="#000000")
+        self.btnHide.configure(background=_bgcolor)
+        self.btnHide.configure(disabledforeground="#a3a3a3")
+        self.btnHide.configure(foreground="#000000")
+        self.btnHide.configure(highlightbackground="#d9d9d9")
+        self.btnHide.configure(highlightcolor="black")
+        self.btnHide.configure(pady="0")
+        self.btnHide.configure(text='''Hide''')
+        self.btnHide.configure(width=46)
+
+        self.btnKill = Button(master, command=self.test_clicl)
+        self.btnKill.place(relx=0.76, rely=0.89, height=24, width=50)
+        self.btnKill.configure(activebackground="#d9d9d9")
+        self.btnKill.configure(activeforeground="#000000")
+        self.btnKill.configure(background=_bgcolor)
+        self.btnKill.configure(disabledforeground="#a3a3a3")
+        self.btnKill.configure(foreground="#000000")
+        self.btnKill.configure(highlightbackground="#d9d9d9")
+        self.btnKill.configure(highlightcolor="black")
+        self.btnKill.configure(pady="0")
+        self.btnKill.configure(text='''Kill''')
+        self.btnKill.configure(width=47)
+
+        self.Label3 = Label(master)
+        self.Label3.place(relx=0.66, rely=0.26, height=31, width=50)
+        self.Label3.configure(background=_bgcolor)
+        self.Label3.configure(disabledforeground="#a3a3a3")
+        self.Label3.configure(font=font10)
+        self.Label3.configure(foreground="#000000")
+        self.Label3.configure(text='''Stay :''')
+
+        self.lblIn = Label(master)
+        self.lblIn.place(relx=0.81, rely=0.07, height=31, width=16)
+        self.lblIn.configure(background=_bgcolor)
+        self.lblIn.configure(disabledforeground="#a3a3a3")
+        self.lblIn.configure(font=font10)
+        self.lblIn.configure(foreground="#000000")
+        self.lblIn.configure(text='''0''')
+
+        self.lblOut = Label(master)
+        self.lblOut.place(relx=0.81, rely=0.16, height=31, width=16)
+        self.lblOut.configure(background=_bgcolor)
+        self.lblOut.configure(disabledforeground="#a3a3a3")
+        self.lblOut.configure(font=font10)
+        self.lblOut.configure(foreground="#000000")
+        self.lblOut.configure(text='''0''')
+
+        self.lblStay = Label(master)
+        self.lblStay.place(relx=0.81, rely=0.26, height=31, width=16)
+        self.lblStay.configure(background=_bgcolor)
+        self.lblStay.configure(disabledforeground="#a3a3a3")
+        self.lblStay.configure(font=font10)
+        self.lblStay.configure(foreground="#000000")
+        self.lblStay.configure(text='''0''')
+
+        self.btnInsert = Button(master, command=self.insert_click)
+        self.btnInsert.place(relx=0.76, rely=0.79, height=24, width=50)
+        self.btnInsert.configure(activebackground="#d9d9d9")
+        self.btnInsert.configure(activeforeground="#000000")
+        self.btnInsert.configure(background=_bgcolor)
+        self.btnInsert.configure(disabledforeground="#a3a3a3")
+        self.btnInsert.configure(foreground="#000000")
+        self.btnInsert.configure(highlightbackground="#d9d9d9")
+        self.btnInsert.configure(highlightcolor="black")
+        self.btnInsert.configure(pady="0")
+        self.btnInsert.configure(text='''Insert''')
+        self.btnInsert.configure(width=50)
