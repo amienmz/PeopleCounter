@@ -200,7 +200,7 @@ class DetectMoving(object):
         PosObj = []
         PosObj150 = []
 
-        threshValue = output.max()-2
+        threshValue = output.max()-3
         if threshValue <1:
             threshValue = 1
 

@@ -96,9 +96,9 @@ while 1:
     disparity = block_matcher.compute(rectified_pair[0], rectified_pair[1])
 
     display = cv2.normalize(disparity,disparity, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-    cv2.imshow("0", rectified_pair[0])
-    cv2.imshow("1", rectified_pair[1])
-    # cv2.imshow("s", display)
+    # cv2.imshow("0", rectified_pair[0])
+    # cv2.imshow("1", rectified_pair[1])
+    cv2.imshow("s", display)
     # cv2.imshow("Before filter", display)
     # (T, mask) = cv2.threshold(display, 50, 255, cv2.THRESH_BINARY_INV)
     # mask = cv2.medianBlur(mask,5)
