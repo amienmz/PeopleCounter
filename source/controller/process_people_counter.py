@@ -226,6 +226,7 @@ class Process_People_Counter(multiprocessing.Process):
                         cv2.line(image_left, (0, 144 + 70), (352, 144 + 70), (255, 255, 255), 1)
                         cv2.putText(image_left, 'In: %i' % trackObj.InSh, (160, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
+                        cv2.putText(image_left, 'fps = ' + str(1 / (time.time() - t1)), (10, 10), font, 0.5, (255, 255, 255), 1)
                         cv2.imshow("back", image_left)
 
                     # print "-----------------------------" + str(count)
