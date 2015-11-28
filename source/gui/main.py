@@ -1,6 +1,7 @@
 import Queue
 from multiprocessing import Process
 import multiprocessing
+import os
 import threading
 import cv2
 # from PIL import Image, ImageTk
@@ -41,19 +42,27 @@ class ThreadedClient:
         p.start()
 
     def on_closing(self):
+        print 'on_closing START'
         try:
             for p in self.lstProcess:
                 p.stop()
         except:
             pass
         try:
-            self.root.destroy()
+            root.destroy()
+            root.quit()
         except:
             pass
         print 'EXIT APP'
-        sys.exit()
+        try:
+            os.kill(os.getpid(),9)
+        except:
+            print 'can not self kill PROCESS'
+            pass
+        print 'on_closing END'
 
 if __name__ == "__main__":
     root = tk.Tk()
     client = ThreadedClient(root)
     root.mainloop()
+    print 'EXIT'

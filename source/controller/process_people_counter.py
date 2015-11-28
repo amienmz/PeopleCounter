@@ -43,12 +43,32 @@ class PC_Manager(object):
         # self.lock.release()
 
     def stop(self):
+        try:
+            self.queue_wait_stop.close()
+            # self.thread_wait_stop.join()
+        except Exception,ex:
+            print 'STOP thread_wait_stop ' + str(ex)
+            pass
+
         self.process_pc.stop()
+        try:
+            self.process_pc.terminate()
+        except Exception, ex:
+            print 'Process terminate exception ' + str(ex)
+            pass
+        try:
+            self.process_pc.join()
+        except Exception, ex:
+            print 'Process join exception ' + str(ex)
+            pass
 
     def wait_value_queue(self):
-            value = self.queue_wait_stop.get()
-            # if isinstance(self.threadClient,ThreadedClient):
-            self.threadClient.remove_client(self.ip_address)
+            try:
+                value = self.queue_wait_stop.get()
+                self.threadClient.remove_client(self.ip_address)
+            except Exception, ex:
+                print 'Thread wait_value_queue ' + str(ex)
+                pass
 
 
 # video recorder
@@ -69,26 +89,27 @@ class Process_People_Counter(multiprocessing.Process):
             return
 
     def stop(self):
-        print 'STOP PROCESS'
+        print 'STOP PROCESS START'
         self.running = False
         try:
-            self.queue_wait_stop.put(const.STOP_PROCESS)
+            self.pi_socket.sendto(const.CMD_DISCONNECT, (self.ip_address, const.PORT))
         except:
+            pass
+        try:
+            socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(const.CMD_CONNECT, ('localhost', const.PORT))
+        except Exception, ex:
+            print 'socket.socket Exception ???' + str(ex)
             pass
         try:
             self.pi_socket.close()
         except Exception, ex:
             print 'pi_socket cannot close ???' + str(ex)
         try:
-            self.terminate()
-        except Exception, ex:
-            print 'Process terminate exception ' + str(ex)
+            self.queue_wait_stop.put(const.STOP_PROCESS)
+        except:
             pass
-        try:
-            self.join()
-        except Exception, ex:
-            print 'Process join exception ' + str(ex)
-            pass
+        print 'STOP PROCESS END'
+        return
 
     def run(self):
         print "I'm here " + self.ip_address
@@ -212,7 +233,7 @@ class Process_People_Counter(multiprocessing.Process):
                     # if res:
                     #     cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
                     # print trackObj.allObj
-                    print 'fps = ' + str(1 / (time.time() - t1))
+                    # print 'fps = ' + str(1 / (time.time() - t1))
                     count += 1
                     char = cv2.waitKey(1)
 

@@ -3,6 +3,7 @@ from re import search
 import numpy
 from numpy.lib.function_base import insert
 from threading import Thread
+from controller.process_people_counter import PC_Manager
 
 __author__ = 'huybu'
 
@@ -24,12 +25,12 @@ class FrmMain(Frame):
         master.wm_title("People Counter")
         self.thread = Thread(target = self.wait_value_queue)
         self.thread.start()
+        # self.lbCameras.insert(END, 'huy'+ '- 123.123.123.123')
+        # self.lbCameras.insert(END, 'pc'+ '- 123.123.123.123')
+
 
     def wait_value_queue(self):
-        count=0
         while True:
-            count +=1
-            print count
             type = self.threadClient.queue_update_pc.get()
             self.master.after(0, func=lambda: self.update_gui(type))
 
@@ -37,24 +38,27 @@ class FrmMain(Frame):
         peopleIn = int(self.lblIn["text"])
         peopleOut = int(self.lblOut["text"])
         if type == const.TYPE_IN:
-            # peopleIn = int(self.strIn.get())
-            # self.lblIn.set.delete(0,END)
-            # self.entryName.insert(0,str(peopleIn+1))
             peopleIn+=1
             self.lblIn["text"] = str(peopleIn)
             pass
         if type == const.TYPE_OUT:
-            # peopleOut = int(self.strOut.get())
-            # self.entryName.delete(0,END)
-            # self.entryName.insert(0,str(peopleIn+1))
             peopleOut+=1
             self.lblOut["text"] = str(peopleOut)
             pass
         self.lblStay["text"] = str(peopleIn-peopleOut)
         self.master.update()
 
-    def test_clicl(self):
-        self.threadClient.queue_update_pc.put(const.TYPE_IN)
+    def btnKill_click(self):
+        try:
+            curPI = str(self.lbCameras.get(self.lbCameras.curselection()))
+            self.lbCameras.delete(self.lbCameras.curselection())
+        except Exception, ex:
+            print('frmMain.btnKill_click ' + str(ex))
+            pass
+        for p in self.threadClient.lstProcess:
+            if p.ip_address in curPI:
+                self.remove_client(p.ip_address)
+                p.stop()
 
     def create_socket(self):
         # create dgram udp socket
@@ -68,7 +72,9 @@ class FrmMain(Frame):
         self._root().update()
 
     def insert_click(self):
-        ip_address, name_cam = FrmPiConnection(self).show()
+        ret, ip_address, name_cam = FrmPiConnection(self,self.lbCameras).show()
+        if not ret:
+            return
         if ip_address and name_cam:
             print ip_address
             self.threadClient.create_camera(ip_address, name_cam)
@@ -148,7 +154,7 @@ class FrmMain(Frame):
         self.btnHide.configure(text='''Hide''')
         self.btnHide.configure(width=46)
 
-        self.btnKill = Button(master, command=self.test_clicl)
+        self.btnKill = Button(master, command=self.btnKill_click)
         self.btnKill.place(relx=0.76, rely=0.89, height=24, width=50)
         self.btnKill.configure(activebackground="#d9d9d9")
         self.btnKill.configure(activeforeground="#000000")

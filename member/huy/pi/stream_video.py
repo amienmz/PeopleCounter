@@ -10,10 +10,17 @@ import socket
 import sys
 from pc_client import PCClient
 import const
+from uuid import getnode as get_mac
 
+
+MAC_ADD = ''
 HOST = ''  # Symbolic name meaning all available interfaces
 PORT = 8888  # Arbitrary non-privileged port
-PC_NAME = 'PC001'
+try:
+    mac = get_mac()
+    MAC_ADD = ':'.join(("%012X" % mac)[i:i+2] for i in range(0, 12, 2))
+except:
+    pass
 # Datagram (udp) socket
 try:
     udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -77,7 +84,9 @@ while True:
             client = PCClient(address, capture_right, capture_left, udpSocket)
             client.start()
         if data == const.CMD_CHECK:
-            udpSocket.sendto(PC_NAME, (address[const.POS_IP],9999))
+            udpSocket.sendto(MAC_ADD, (address[const.POS_IP],9999))
+        if data == const.CMD_DISCONNECT:
+            stop_client_thread()
     except KeyboardInterrupt:
         print 'Interrupted catched'
         try:
