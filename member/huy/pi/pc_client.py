@@ -32,7 +32,6 @@ class PCClient(threading.Thread):
                 dataLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1])
                 stringData = dataRight.tostring() + "daicahuy" + dataLeft.tostring()
                 self.udpSocket.sendto(stringData, self.address)
-                time.sleep(0.05)
             except Exception, ex:
                 print 'stop client exception'
                 print str(ex)

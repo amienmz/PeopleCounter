@@ -4,7 +4,7 @@ __author__ = 'huybu'
 import Tkinter as tk
 import cv2
 import Tkinter
-from PIL import Image, ImageTk
+# from PIL import Image, ImageTk
 
 class FrmCamera(object):
     def __init__(self, parent,lock,queue):
@@ -34,10 +34,10 @@ class FrmCamera(object):
                     # if frame is None:
                     #     frame = self.last_frame
                     im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    a = Image.fromarray(im)
-                    b = ImageTk.PhotoImage(image=a)
-                    self.image_label.configure(image=b)
-                    self.image_label._image_cache = b  # avoid garbage collection
+                    # a = Image.fromarray(im)
+                    # b = ImageTk.PhotoImage(image=a)
+                    # self.image_label.configure(image=b)
+                    # self.image_label._image_cache = b  # avoid garbage collection
                     self.toplevel.update()
                     # self.last_frame=frame
                 self.toplevel.after(0, func=lambda: self.update_video())
