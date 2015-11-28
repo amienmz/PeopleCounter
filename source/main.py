@@ -92,11 +92,11 @@ while True:
                     cv2.rectangle(image_left,x[0], x[1],(255,255,255), 5)
                     y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
                     imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                    cv2.imwrite("capture/pass/"+str(count) + str(count_x)+'.jpg', imgx)
+                    # cv2.imwrite("capture/pass/"+str(count) + str(count_x)+'.jpg', imgx)
                 else:
                     y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
                     imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                    cv2.imwrite("capture/fail/"+str(count) + str(count_x)+'.jpg', imgx)
+                    # cv2.imwrite("capture/fail/"+str(count) + str(count_x)+'.jpg', imgx)
         trackObj.remove_track()
         cv2.line(image_left,(0,144-70),(352,144-70),(255,255,255),1)
         cv2.line(image_left,(0,144),(352,144),(255,255,255),1)

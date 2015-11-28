@@ -54,7 +54,7 @@ def compare(a, b):
 near = np.array([[0,0,1,1,1,-1,-1,-1], [1,-1,0,-1,1,0,1,-1]], np.int8)
 # near = np.array([[0,1],[1,0],[0,-1],[-1,0]], np.int8)
 
-image = cv2.imread('950.jpg', 0)
+image = cv2.imread('611.jpg', 0)
 image = cv2.medianBlur(image, 31)
 # image = cv2.bilateralFilter(image,9, 75,75)
 # (T, image) = cv2.threshold(image, image.max()-20, 255, cv2.THRESH_BINARY)
@@ -95,24 +95,56 @@ while True:
     if np.sum(imageCopy) == (255*imageCopy.shape[1]*imageCopy.shape[0]):
         break
 
-    if len(listHead) > 0:
+    # if len(listHead) > 0:
+    #     isExistContour = False
+    #     # check if have any head position in contour
+    #     for cn in contours:
+    #         for headPosition in listHead:
+    #             if cv2.pointPolygonTest(cn, headPosition, True)==0:
+    #                 isExistContour = True
+    #                 break
+    #         # if contour dont wrap any head position, add that contour to new listHead
+    #         if not isExistContour:
+    #             M = cv2.moments(cn)
+    #             centroid_x = int(M['m10']/M['m00'])
+    #             centroid_y = int(M['m01']/M['m00'])
+    #             listHead.append((centroid_x, centroid_y))
+
+
+    # if len(contours) >= lastNumberOfContour:
+    (T, imageCopy) = cv2.threshold(image.copy(), image.max()-(threshHold * (x-1)), 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(imageCopy.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    if len(listHead) == 0:
+        for cn in contours:
+            print "size: " + str(cv2.contourArea(cn))
+            if cv2.contourArea(cn) > 500:
+                M = cv2.moments(cn)
+                centroid_x = int(M['m10']/M['m00'])
+                centroid_y = int(M['m01']/M['m00'])
+                listHead.append((centroid_x, centroid_y))
+    else:
+        # (T, imageCopy) = cv2.threshold(image.copy(), image.max()-(threshHold * x), 255, cv2.THRESH_BINARY)
+        # contours, hierarchy = cv2.findContours(imageCopy.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
         isExistContour = False
+        # check if have any head position in contour
         for cn in contours:
             for headPosition in listHead:
-                if cv2.pointPolygonTest(cn, headPosition, True)==0:
+                if cv2.pointPolygonTest(cn, headPosition, True) >= 0:
                     isExistContour = True
                     break
+                else:
+                    isExistContour = False
+            # if contour dont wrap any head position, add that contour to new listHead
+            if not isExistContour:
+                print "size: " + str(cv2.contourArea(cn))
+                if cv2.contourArea(cn) > 500:
+                    M = cv2.moments(cn)
+                    centroid_x = int(M['m10']/M['m00'])
+                    centroid_y = int(M['m01']/M['m00'])
+                    listHead.append((centroid_x, centroid_y))
 
-
-
-    if len(contours) == lastNumberOfContour:
-        (T, imageCopy) = cv2.threshold(image.copy(), image.max()-(threshHold * (x-1)), 255, cv2.THRESH_BINARY)
-        contours, hierarchy = cv2.findContours(imageCopy.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        for cn in contours:
-            M = cv2.moments(cn)
-            centroid_x = int(M['m10']/M['m00'])
-            centroid_y = int(M['m01']/M['m00'])
-            listHead.append((centroid_x, centroid_y))
+    for point in listHead:
+        cv2.circle(imageCopy, point, 5, (0,0,0))
 
 
 
@@ -129,6 +161,8 @@ while True:
     cv2.imshow("i", imageCopy)
     cv2.waitKey(0)
 
+
+print listHead
 
 
 # image = cv2.Canny(image,10, 10)
