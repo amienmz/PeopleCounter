@@ -6,8 +6,8 @@ class DepthmapCalculator(object):
 
     def __init__(self, data):
         self.link_data = data
-        self.minDisparity = 8
-        self.numDisparities = 3 *16
+        self.minDisparity = 15
+        self.numDisparities = 2 *16
         self.SADWindowSize = 1
         self.P1 = 32
         self.P2 = 93

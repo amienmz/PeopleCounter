@@ -9,7 +9,7 @@ class DetectMoving(object):
         self.WIDTH_PCONS = 50
         self.HEIGHT_PCONS = 50
         self.near = np.array([[0,0,1,1,1,-1,-1,-1], [1,-1,0,-1,1,0,1,-1]], np.int8)
-        self.threshHold = 10
+        self.threshHold = 8
 
     def compare(self,a, b):
         a = np.int(a)
@@ -200,47 +200,72 @@ class DetectMoving(object):
         PosObj = []
         PosObj150 = []
 
-        threshValue = output.max()-3
-        if threshValue <1:
-            threshValue = 1
+        # threshValue = output.max()-3
+        # if threshValue <1:
+        #     threshValue = 1
 
-        (T, output) = cv2.threshold(output, threshValue, 255, cv2.THRESH_BINARY)
-        output = cv2.medianBlur(output, 3)
+        (T, output) = cv2.threshold(output, 1, 255, cv2.THRESH_BINARY)
+        # output = cv2.medianBlur(output, 3)
+
+        contours, hierarchy = cv2.findContours(output,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+        for cn in contours:
+            print "size contour: " + str(cv2.contourArea(cn))
+            if cv2.contourArea(cn) > 30:
+                print "sss"
+
+                (dist_transform, label) = cv2.distanceTransformWithLabels(output,cv2.cv.CV_DIST_L2,3)
+                ret, sure_fg = cv2.threshold(dist_transform,0.5*dist_transform.max(),255,0)
+
+                output = sure_fg
+                output = np.uint8(output)
+                output = cv2.resize(output, (output.shape[1] * 2, output.shape[0] * 2))
+                (T, output) = cv2.threshold(output,1, 255, cv2.THRESH_BINARY)
+                output = cv2.medianBlur(output,3)
+                output = cv2.resize(output, (output.shape[1] / 2, output.shape[0] / 2))
+                (T, output) = cv2.threshold(output,128, 255, cv2.THRESH_BINARY)
+                print output
+
         contours, hierarchy = cv2.findContours(output,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for cn in contours:
             ver = cv2.boundingRect(cn)
-            if cv2.contourArea(cn) > 0:
+            if cv2.contourArea(cn) > 1:
                 maiorArea = cv2.contourArea(cn)
                 rect = ver
                 # print rect
                 ponto1 = (rect[0]*20, rect[1]*20)
                 ponto2 = ((rect[0]+ rect[2])*20,(rect[1]+rect[3])*20)
                 ponto3 = (ponto2[0]-ponto1[0],ponto2[1]-ponto1[1])
-                if ponto3[0] > self.sizeImg*2:
-                    pontow = ponto3[0]/2
-                    ponton11 = (ponto1[0], ponto1[1])
-                    ponton12 = (ponton11[0]+pontow,ponto2[1])
-                    ponton13 = (pontow,ponto3[1])
-                    datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
-                    PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
-                    ponton11 = (ponton12[0], ponto1[1])
-                    ponton12 = (ponton11[0]+pontow,ponto2[1])
-                    ponton13 = (pontow,ponto3[1])
-                    datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
-                    PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
-                # elif ponto3[1] > self.sizeImg and ponto3[0] < self.sizeImg*2:
-                #     pontoh = ponto3[1]/2
+
+                if ponto3[0] <= 150 :
+                    # cv2.rectangle(imagex, ponto1, ponto2,(255,255,255), 2)
+                    # data1,data2 = CheckRectDetect(ponto1,ponto2,ponto3,352,288)
+                    # cv2.rectangle(imagex, data1, data2,(255,255,255), 1)
+                # if ponto3[0] > self.sizeImg*2:
+                #     pontow = ponto3[0]/2
                 #     ponton11 = (ponto1[0], ponto1[1])
-                #     ponton12 = (ponto2[0],ponton11[1]+pontoh)
-                #     ponton13 = (ponto3[0],pontoh)
+                #     ponton12 = (ponton11[0]+pontow,ponto2[1])
+                #     ponton13 = (pontow,ponto3[1])
                 #     datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
                 #     PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
-                #     ponton11 = (ponto1[0], ponton12[1])
-                #     ponton12 = (ponto2[0],ponton11[1]+pontoh)
-                #     ponton13 = (ponto3[0],pontoh)
+                #     ponton11 = (ponton12[0], ponto1[1])
+                #     ponton12 = (ponton11[0]+pontow,ponto2[1])
+                #     ponton13 = (pontow,ponto3[1])
                 #     datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
                 #     PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
-                else:
+                # # elif ponto3[1] > self.sizeImg and ponto3[0] < self.sizeImg*2:
+                # #     pontoh = ponto3[1]/2
+                # #     ponton11 = (ponto1[0], ponto1[1])
+                # #     ponton12 = (ponto2[0],ponton11[1]+pontoh)
+                # #     ponton13 = (ponto3[0],pontoh)
+                # #     datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
+                # #     PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                # #     ponton11 = (ponto1[0], ponton12[1])
+                # #     ponton12 = (ponto2[0],ponton11[1]+pontoh)
+                # #     ponton13 = (ponto3[0],pontoh)
+                # #     datax,datay = self.resize4detect(ponton11,ponton12,ponton13,w,h)
+                # #     PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+                # else:
                 # cv2.rectangle(imagex, ponto1, ponto2,(255,255,255), 2)
                 # data1,data2 = CheckRectDetect(ponto1,ponto2,ponto3,352,288)
                 # cv2.rectangle(imagex, data1, data2,(255,255,255), 1)
