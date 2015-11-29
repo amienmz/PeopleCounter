@@ -4,7 +4,7 @@ import time
 from source.gui.frm_camera import FrmCamera
 import socket
 import multiprocessing
-import sys
+import os
 import numpy
 
 from source.utils import const
@@ -159,6 +159,11 @@ class Process_People_Counter(multiprocessing.Process):
             #
             # video_writer_left = cv2.VideoWriter("outputL24.avi", CODEC, 24, (352, 288))
 
+
+              #detete old data before write image
+            # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
+            # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
+
             while self.running:
                 t1 = time.time()
                 reply, addr = self.pi_socket.recvfrom(50000)
@@ -172,8 +177,10 @@ class Process_People_Counter(multiprocessing.Process):
                     # cv2.imshow('SERVER LEFT', image_left)
                     # video_writer_right.write(image_right)
                     # video_writer_left.write(image_left)
+                    # cv2.imwrite("../capture/video" + str(count) + ".jpg", image_left)
                     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
                     # depthmap = 255 - depthmap
+                    # cv2.imwrite("../capture/depth" + str(count) + ".jpg", depthmap)
                     cv2.imshow("depthmap", depthmap)
                     # if count % 10 == 0:
                     #     self.queue_update_pc.put(const.TYPE_IN)
@@ -181,7 +188,7 @@ class Process_People_Counter(multiprocessing.Process):
                         mask, display = backgroundSubtraction.compute(depthmap)
                         # if np.sum(display) > 100:
                         #     print "capture" + str(count)
-                        # cv2.imwrite("capture/" + str(count) + ".jpg", display)
+                        # cv2.imwrite("../capture/back" + str(count) + ".jpg", display)
 
                         cv2.imshow("back1", display)
                         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
@@ -193,15 +200,18 @@ class Process_People_Counter(multiprocessing.Process):
                         #         cv2.imshow("back", im_detected)
                         trackObj.resetTracking()
                         data, data150 = detectMoving.detectObjectInImage(display)
-                        # if len(data150) > 0:
-                        #     for y in data150:
-                        #         # print y
-                        #         imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                        # cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
-                        # cv2.imwrite("image/"+str(count)+'.jpg', imgx)
+                        if len(data150) > 0:
+                            count_y = 0
+                            for y in data150:
+                                # print y
+                                imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                                cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
+                                # cv2.imwrite("../capture/150/b"+str(count) + str(count_y)+'.jpg', imgx)
+                                count_y+=1
 
                         if len(data) > 0:
                             for x in data:
+                                count_y = 0
                                 print x
                                 # print x[0], x[1]
                                 # print x[1][0] - x[0][0], x[1][1] - x[0][1]
@@ -210,23 +220,31 @@ class Process_People_Counter(multiprocessing.Process):
                                 #     cdetect+=1
                                 #     print cdetect
 
-                                cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 1)
+                                cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
                                 if detector.detect1(display, x[0], x[1], x[2]):
                                     trackObj.trackingObj(x[0], x[2])
                                     # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
-                                    cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 5)
+                                    cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
+
+                                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 5)
+                                    y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
+                                    imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                                    # cv2.imwrite("../capture/pass/l"+str(count)+str(count_y) + '.jpg', imgx)
+                                    # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
+
                                 else:
                                     y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
                                     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
-                                    # cv2.imwrite("image/failed/"+str(count)+'.jpg', imgx)
+                                    # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
+                                    # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
                         trackObj.remove_track()
                         cv2.line(image_left, (0, 144 - 70), (352, 144 - 70), (255, 255, 255), 1)
                         cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
                         cv2.line(image_left, (0, 144 + 70), (352, 144 + 70), (255, 255, 255), 1)
                         cv2.putText(image_left, 'In: %i' % trackObj.InSh, (160, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
-                        cv2.putText(image_left, 'fps = ' + str(1 / (time.time() - t1)), (10, 10), font, 0.5, (255, 255, 255), 1)
+                        cv2.putText(image_left, 'fps = ' + str(int(1 / (time.time() - t1))), (10, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.imshow("back", image_left)
 
                     # print "-----------------------------" + str(count)

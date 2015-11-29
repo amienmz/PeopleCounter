@@ -8,7 +8,7 @@ class DetectMoving(object):
         self.sizeImg = sizeImg
         self.WIDTH_PCONS = 50
         self.HEIGHT_PCONS = 50
-        self.noiseSize = 700
+        self.noiseSize = 3000
         self.threshHold = 40
 
     def compare(self,a, b):

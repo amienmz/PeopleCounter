@@ -11,7 +11,7 @@ from config import *
 
 if __name__ == "__main__":
      #detete old data before train
-    # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/models/*")
+    os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/data/models/*")
 
     pos_feat_path = "../../data/features/pos"
     neg_feat_path = "../../data/features/neg"
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         if len(fd) == 800:
             fds.append(fd)
             labels.append(1)
-    print len(labels)
+
 
     # Load the negative features
     for feat_path in glob.glob(os.path.join(neg_feat_path,"*.feat")):
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         if len(fd) == 800:
             fds.append(fd)
             labels.append(0)
-
+    print "Start train " + str(len(labels)) + " samples"
     # print fds
     if clf_type is "LIN_SVM":
         clf = LinearSVC()
