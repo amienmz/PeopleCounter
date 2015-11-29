@@ -5,12 +5,13 @@ import cv2
 import numpy as np
 
 class TrackingObj(object):
-    def __init__(self, queue_update_pc):
+    def __init__(self, queue_update_pc, queue_post2web):
         self.allObj = []
         self.InSh = 0
         self.OutSh = 0
         self.maxPass = 10
         self.queue_update_pc = queue_update_pc
+        self.queue_post2web = queue_post2web
         self.topPosition = 144-70
         self.midPosition = 144
         self.botPosition = 144+70
@@ -124,9 +125,11 @@ class TrackingObj(object):
                         if inout == 0:
                             self.OutSh +=1
                             self.queue_update_pc.put(const.TYPE_OUT)
+                            self.queue_post2web.put(const.TYPE_OUT)
                         elif inout == 1:
                             self.InSh +=1
                             self.queue_update_pc.put(const.TYPE_IN)
+                            self.queue_post2web.put(const.TYPE_IN)
                     haveline = True
                     break
         if haveline == False:

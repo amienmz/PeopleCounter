@@ -36,13 +36,12 @@ class ThreadedClient:
                     self.lstProcess.remove(p)
                     return
 
-    def create_camera(self, ip_address, name_cam):
-        p = PC_Manager(ip_address, self, self.root, self.lock, self.queue_update_pc)
+    def create_camera(self, ip_address, name_cam, macid):
+        p = PC_Manager(ip_address, self, self.root, self.lock, self.queue_update_pc, name_cam, macid)
         self.lstProcess.append(p)
         p.start()
 
     def on_closing(self):
-        print 'on_closing START'
         try:
             for p in self.lstProcess:
                 p.stop()
@@ -53,16 +52,13 @@ class ThreadedClient:
             root.quit()
         except:
             pass
-        print 'EXIT APP'
         try:
             os.kill(os.getpid(),9)
         except:
             print 'can not self kill PROCESS'
             pass
-        print 'on_closing END'
 
 if __name__ == "__main__":
     root = tk.Tk()
     client = ThreadedClient(root)
     root.mainloop()
-    print 'EXIT'

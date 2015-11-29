@@ -1,3 +1,4 @@
+import requests
 import threading
 import cv2
 import time
@@ -20,7 +21,7 @@ from source.learningMachine.detect import Detector
 
 
 class PC_Manager(object):
-    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc):
+    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid):
         self.threadClient = threadClient
         self.ip_address = ip_address
         # self.queue_process_to_frm = multiprocessing.Queue()
@@ -28,24 +29,28 @@ class PC_Manager(object):
         # self.frm_camera = FrmCamera(self.root, lock, self.queue_process_to_frm)
         self.lock = lock
 
-        self.queue_wait_stop = multiprocessing.Queue()
-        self.thread_wait_stop = threading.Thread(target = self.wait_value_queue)
-        # self.running = True
+        self.queue_execute_data = multiprocessing.Queue()
+        self.running = True
+        self.thread_execute_data = threading.Thread(target = self.wait_value_queue)
+
         # create process
-        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_wait_stop)
+        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data)
+        self.name_cam = name_cam
+        self.macid = macid
 
     def start(self):
         self.process_pc.start()
-        self.thread_wait_stop.start()
+        self.thread_execute_data.start()
         # self.process_pc.join()
         # self.lock.acquire()
         # self.frm_camera.toplevel.after(0, func=lambda: self.frm_camera.update_video())
         # self.lock.release()
 
     def stop(self):
+        self.running = False
+        self.queue_execute_data.put(const.CMD_DISCONNECT)
         try:
-            self.queue_wait_stop.close()
-            # self.thread_wait_stop.join()
+            self.queue_execute_data.close()
         except Exception,ex:
             print 'STOP thread_wait_stop ' + str(ex)
             pass
@@ -63,9 +68,24 @@ class PC_Manager(object):
             pass
 
     def wait_value_queue(self):
+        # thread wait to romove PI and post data to web
+        while self.running:
             try:
-                value = self.queue_wait_stop.get()
-                self.threadClient.remove_client(self.ip_address)
+                value = self.queue_execute_data.get()
+                print 'value = ' + str(value)
+                if value == const.STOP_PROCESS:
+                    self.threadClient.remove_client(self.ip_address)
+                    payload = {'id': self.macid, 'name': self.name_cam , 'status': 'false' }
+                    r = requests.post('http://10.20.13.180:3000/datarecevier', data=payload)
+                    print 'STOP_PROCESS'
+                if value == const.TYPE_IN:
+                    payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'true' , 'status': 'true' }
+                    r = requests.post('http://10.20.13.180:3000/datarecevier', data=payload)
+                    print 'TYPE_IN'
+                if value == const.TYPE_OUT:
+                    payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'false' , 'status': 'true' }
+                    r = requests.post('http://10.20.13.180:3000/datarecevier', data=payload)
+                    print 'TYPE_OUT'
             except Exception, ex:
                 print 'Thread wait_value_queue ' + str(ex)
                 pass
@@ -75,12 +95,12 @@ class PC_Manager(object):
 
 
 class Process_People_Counter(multiprocessing.Process):
-    def __init__(self, ip_address, queue_update_pc, queue_wait_stop):
+    def __init__(self, ip_address, queue_update_pc, queue_execute_data):
         multiprocessing.Process.__init__(self)
         self.ip_address = ip_address
         self.queue_update_pc = queue_update_pc
         self.running = True
-        self.queue_wait_stop = queue_wait_stop
+        self.queue_execute_data = queue_execute_data
         # create dgram udp socket
         try:
             self.pi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -105,7 +125,7 @@ class Process_People_Counter(multiprocessing.Process):
         except Exception, ex:
             print 'pi_socket cannot close ???' + str(ex)
         try:
-            self.queue_wait_stop.put(const.STOP_PROCESS)
+            self.queue_execute_data.put(const.STOP_PROCESS)
         except:
             pass
         print 'STOP PROCESS END'
@@ -130,7 +150,7 @@ class Process_People_Counter(multiprocessing.Process):
         detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
 
         # init tracking
-        trackObj = TrackingObj(self.queue_update_pc)
+        trackObj = TrackingObj(self.queue_update_pc,self.queue_execute_data)
 
         # subtract moving object
         imgObjectMoving = ObjectMoving(150, 150, 30)

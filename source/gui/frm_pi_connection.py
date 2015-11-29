@@ -19,11 +19,12 @@ class FrmPiConnection(object):
         self.strCbb = StringVar()
         self.create_gui()
         self.ret = False
+        self.macid = ''
 
     def show(self):
         self.toplevel.deiconify()
         self.toplevel.wait_window()
-        return self.ret, self.strEntryIp.get(), self.strName.get()
+        return self.ret, self.strEntryIp.get(), self.strName.get(), self.macid
 
     def btnConnect_click(self):
         try:
@@ -51,6 +52,7 @@ class FrmPiConnection(object):
             self.request_focus()
             return
         self.ret = True
+        self.stop()
         self.toplevel.destroy()
 
     def request_focus(self):
@@ -59,14 +61,24 @@ class FrmPiConnection(object):
         self.toplevel.wm_attributes("-topmost", 0)
 
     def btnRefresh_click(self):
+        try:
+            self.running=False
+            self.pi_socket.close()
+        except Exception,ex:
+            print('btnRefresh_click '+str(ex))
+            pass
+
         self.thread = Thread(target = self.run)
         self.thread.start()
 
     def stop(self):
-        self.running = False
-        # self.pi_socket.socket(socket.AF_INET,
-        #               socket.SOCK_STREAM).connect( ('', 9999))
-        self.pi_socket.close()
+        try:
+            self.running = False
+            # self.pi_socket.socket(socket.AF_INET,
+            #               socket.SOCK_STREAM).connect( ('', 9999))
+            self.pi_socket.close()
+        except Exception, ex:
+            print 'STOP FRM_PI_CONNECTION EXCEPTION '+str(ex)
 
     def run(self):
         self.running = True
@@ -104,14 +116,19 @@ class FrmPiConnection(object):
 
     def update_combobox(self):
         # self.cbbAvaibleCam['values'] = ('X', 'Y', 'Z')
-        self.cbbAvaibleCam['values'] = self.list_cam
-        if (len(self.list_cam)==1):
-            value = self.list_cam[0]
-            self.cbbAvaibleCam.current(0)
-            # self.entryName.delete(0,END)
-            self.entryIpAddress.delete(0,END)
-            # self.entryName.insert(0,value.split('-')[0])
-            self.entryIpAddress.insert(0,value.split('-')[1])
+        try:
+            self.cbbAvaibleCam['values'] = self.list_cam
+            if (len(self.list_cam)>0):
+                value = self.list_cam[0]
+                self.cbbAvaibleCam.current(0)
+                # self.entryName.delete(0,END)
+                self.entryIpAddress.delete(0,END)
+                self.macid = value.split('-')[0]
+                # self.entryName.insert(0,value.split('-')[0])
+                self.entryIpAddress.insert(0,value.split('-')[1])
+        except Exception, ex:
+            print 'frm_main.update_combobox Exception: ' + str(ex)
+
         self.toplevel.update()
         self.cbbAvaibleCam.after(1000, func=lambda: self.update_combobox())
 
@@ -119,7 +136,7 @@ class FrmPiConnection(object):
         value = self.cbbAvaibleCam.get()
         # self.entryName.delete(0,END)
         self.entryIpAddress.delete(0,END)
-        # self.entryName.insert(0,value.split('-')[0])
+        self.macid = value.split('-')[0]
         self.entryIpAddress.insert(0,value.split('-')[1])
 
     def create_gui(self):
