@@ -8,3 +8,4 @@ CMD_CONNECT = 'connect'
 CMD_DISCONNECT = 'disconnect'
 CMD_OK = 'ok'
 CMD_CHECK = 'check'
+PORT=8888

@@ -1,25 +1,21 @@
-import threading
-# import test
+import numpy as np
+import cv2
+import time
 
-__author__ = 'huybu'
-# import const
-#
-# line = 'huydaicahuyhehe'
-#
-# ar = line.split('daicahuy')
-#
-# print(ar)
-#
-# print(const.POS_DATA)
+cap = cv2.VideoCapture('../../../data/outputL24.avi')
+time.sleep(2)
+while(True):
+    # Capture frame-by-frame
+    ret, frame = cap.read()
+    # if ret == True:
+    # # Our operations on the frame come here
+    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-class huy(threading.Thread):
-    def __init__(self, value):
-        self.valuee = value
-        return
-    def run(self):
-        for i in range(0, self.valuee):
-            print(i + ' ')
+    # Display the resulting frame
+    cv2.imshow('frame',frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-
-client = huy(10)
-client.start()
+# When everything done, release the capture
+cap.release()
+cv2.destroyAllWindows()

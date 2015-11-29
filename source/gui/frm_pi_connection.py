@@ -1,4 +1,5 @@
 import socket
+import time
 from source.controller.process_people_counter import PC_Manager
 from source.utils import const
 from threading import Thread
@@ -20,6 +21,7 @@ class FrmPiConnection(object):
         self.create_gui()
         self.ret = False
         self.macid = ''
+        self.isNewFresh = False
 
     def show(self):
         self.toplevel.deiconify()
@@ -64,6 +66,7 @@ class FrmPiConnection(object):
         try:
             self.running=False
             self.pi_socket.close()
+            time.sleep(0.1)
         except Exception,ex:
             print('btnRefresh_click '+str(ex))
             pass
@@ -83,6 +86,7 @@ class FrmPiConnection(object):
     def run(self):
         self.running = True
         self.list_cam = []
+        self.isNewFresh = True
         try:
             self.pi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.pi_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -118,7 +122,7 @@ class FrmPiConnection(object):
         # self.cbbAvaibleCam['values'] = ('X', 'Y', 'Z')
         try:
             self.cbbAvaibleCam['values'] = self.list_cam
-            if (len(self.list_cam)>0):
+            if (len(self.list_cam)>0 and self.isNewFresh):
                 value = self.list_cam[0]
                 self.cbbAvaibleCam.current(0)
                 # self.entryName.delete(0,END)
@@ -126,6 +130,7 @@ class FrmPiConnection(object):
                 self.macid = value.split('-')[0]
                 # self.entryName.insert(0,value.split('-')[0])
                 self.entryIpAddress.insert(0,value.split('-')[1])
+                self.isNewFresh = False
         except Exception, ex:
             print 'frm_main.update_combobox Exception: ' + str(ex)
 
