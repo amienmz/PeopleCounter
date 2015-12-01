@@ -69,7 +69,7 @@ class TrackingObj(object):
         elif y <= self.botPosition <= y+h:
             return 2
 
-        elif y <= self.midPosition <= y+h:
+        elif self.topPosition < y and self.botPosition > y+h:
             return 1
 
 
