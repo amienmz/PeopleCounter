@@ -24,7 +24,7 @@ class PC_Manager(object):
     def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid):
         self.threadClient = threadClient
         self.ip_address = ip_address
-        self.webAdress = "http://10.20.13.180:3000/receiver"
+        self.webAdress = "http://10.20.13.175:3000/receiver"
         # self.queue_process_to_frm = multiprocessing.Queue()
         self.root = root_tk
         # self.frm_camera = FrmCamera(self.root, lock, self.queue_process_to_frm)
@@ -182,8 +182,8 @@ class Process_People_Counter(multiprocessing.Process):
 
 
               #detete old data before write image
-            # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
-            # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
+            os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
+            os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
 
             while self.running:
                 t1 = time.time()
@@ -233,7 +233,6 @@ class Process_People_Counter(multiprocessing.Process):
                         if len(data) > 0:
                             for x in data:
                                 count_y = 0
-                                print x
                                 # print x[0], x[1]
                                 # print x[1][0] - x[0][0], x[1][1] - x[0][1]
                                 # ckObj = trackObj.check_Obj(x[0],x[2])
@@ -252,13 +251,13 @@ class Process_People_Counter(multiprocessing.Process):
                                     cv2.rectangle(image_left,x[0], x[1],(255,255,255), 5)
                                     y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
                                     imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                                    # cv2.imwrite("../capture/pass/l"+str(count)+str(count_y) + '.jpg', imgx)
+                                    cv2.imwrite("../capture/pass/q"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
 
                                 else:
                                     y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
                                     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
-                                    # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
+                                    cv2.imwrite("../capture/fail/q"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
                         trackObj.remove_track()
                         cv2.line(image_left, (0, 144 - 70), (352, 144 - 70), (255, 255, 255), 1)

@@ -78,11 +78,11 @@ class Stream_Process(multiprocessing.Process):
                 print "connect from " + address[const.POS_IP]
                 if data == const.CMD_CONNECT:
                     self.stop_client_thread()
-                    capture_right = cv2.VideoCapture('../../../data/outputR24.avi')
+                    capture_right = cv2.VideoCapture(0)
                     capture_right.set(3, 352)
                     capture_right.set(4, 288)
                     capture_right.set(5, 24)
-                    capture_left = cv2.VideoCapture('../../../data/outputL24.avi')
+                    capture_left = cv2.VideoCapture(1)
                     capture_left.set(3, 352)
                     capture_left.set(4, 288)
                     capture_left.set(5, 24)
