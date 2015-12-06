@@ -242,14 +242,15 @@ class Process_People_Counter(multiprocessing.Process):
                                 #     print cdetect
 
                                 cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
-                                trackObj.trackingObj(x[0], x[2])
+                                # trackObj.trackingObj(x[0], x[2])
                                 if detector.detect1(display, x[0], x[1], x[2]):
-                                    trackObj.trackingObj(x[0], x[2])
+                                    trackObj.trackingObj(x[0], x[2], 25)
                                     # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
+                                    pon = [x[0][1] +x[2][1]/2,x[0][0] + x[2][0]/2]
                                     cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
 
-                                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 5)
+                                    cv2.circle(image_left,pon,25,(255,255,255), 5)
                                     y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
                                     imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/pass/l"+str(count)+str(count_y) + '.jpg', imgx)
