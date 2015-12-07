@@ -24,7 +24,7 @@ class PC_Manager(object):
     def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid):
         self.threadClient = threadClient
         self.ip_address = ip_address
-        self.webAdress = "http://10.20.13.180:3000/receiver"
+        # self.webAdress = "http://10.20.13.180:3000/receiver"
         # self.queue_process_to_frm = multiprocessing.Queue()
         self.root = root_tk
         # self.frm_camera = FrmCamera(self.root, lock, self.queue_process_to_frm)
@@ -74,18 +74,24 @@ class PC_Manager(object):
         while self.running:
             try:
                 value = self.queue_execute_data.get()
+                if value == const.CAMERAS_CONNECTED:
+                    self.macid = self.queue_execute_data.get()
+                    print 'macid = ' + self.macid
+                    payload = {'id': self.macid, 'name': self.name_cam , 'status': 'true' }
+                    r = requests.post(const.WEB_IP, data=payload)
+                    print 'CAMERAS_CONNECTED'
                 if value == const.STOP_PROCESS:
                     self.threadClient.remove_client(self.ip_address)
                     payload = {'id': self.macid, 'name': self.name_cam , 'status': 'false' }
-                    r = requests.post(self.webAdress, data=payload)
+                    r = requests.post(const.WEB_IP, data=payload)
                     print 'STOP_PROCESS'
                 if value == const.TYPE_IN:
                     payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'true' , 'status': 'true' }
-                    r = requests.post(self.webAdress, data=payload)
+                    r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_IN'
                 if value == const.TYPE_OUT:
                     payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'false' , 'status': 'true' }
-                    r = requests.post(self.webAdress, data=payload)
+                    r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_OUT'
             except Exception, ex:
                 print 'Thread wait_value_queue ' + str(ex)
@@ -189,7 +195,11 @@ class Process_People_Counter(multiprocessing.Process):
                 t1 = time.time()
                 reply, addr = self.pi_socket.recvfrom(50000)
                 try:
-                    arr = reply.split('daicahuy')
+                    if not const.JOIN in reply:
+                        self.queue_execute_data.put(const.CAMERAS_CONNECTED)
+                        self.queue_execute_data.put(reply)
+                        continue
+                    arr = reply.split(const.JOIN)
                     dataRight = numpy.fromstring(arr[0], dtype='uint8')
                     dataLeft = numpy.fromstring(arr[1], dtype='uint8')
                     image_right = cv2.imdecode(dataRight, 1)
