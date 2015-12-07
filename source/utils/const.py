@@ -12,3 +12,6 @@ PORT = 8888  # Arbitrary non-privileged port
 TYPE_IN = 1
 TYPE_OUT = 2
 STOP_PROCESS = 3
+CAMERAS_CONNECTED = 4
+JOIN = '*****'
+WEB_IP = 'http://10.20.13.180:3000/receiver'

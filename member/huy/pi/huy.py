@@ -28,13 +28,14 @@ import huy
 # client = huy(10)
 # client.start()
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture('../../../data/outputL24.avi')
 cap.set(3,352)
 cap.set(4,352)
 
 while True:
     first = time.time()
     ret, frame = cap.read()
+    print ret
     cv2.imshow('pro',frame)
     print "time = " + str(time.time()-first)
-    cv2.waitKey(1)
+    cv2.waitKey(10)

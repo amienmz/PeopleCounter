@@ -5,6 +5,7 @@ import threading
 import cv2
 import time
 import zlib
+import const
 __author__ = 'huybu'
 
 
@@ -30,7 +31,7 @@ class PCClient(threading.Thread):
                 # dataLeft = numpy.array(comLeft)
                 dataRight = numpy.array(cv2.imencode('.jpg', frame_right, self.encode_param)[1])
                 dataLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1])
-                stringData = dataRight.tostring() + "daicahuy" + dataLeft.tostring()
+                stringData = dataRight.tostring() + const.JOIN + dataLeft.tostring()
                 self.udpSocket.sendto(stringData, self.address)
             except Exception, ex:
                 print 'stop client exception'
