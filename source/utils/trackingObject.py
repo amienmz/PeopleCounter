@@ -65,13 +65,13 @@ class TrackingObj(object):
 
 
     def check_withLine(self,y,h):
-        if y <= self.topPosition <= y+h:
+        if y-h <= self.topPosition <= y+h:
             return 0
 
-        elif y <= self.botPosition <= y+h:
+        elif y-h <= self.botPosition <= y+h:
             return 2
 
-        elif self.topPosition < y and self.botPosition > y+h:
+        elif self.topPosition < y-h and self.botPosition > y+h:
             return 1
 
 
