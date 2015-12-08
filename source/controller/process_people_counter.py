@@ -192,7 +192,7 @@ class Process_People_Counter(multiprocessing.Process):
             # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
             # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
 
-            line_seperate = np.zeros((288,5),np.uint8) + 255
+            line_seperate = np.zeros((288,5,3),np.uint8) + 255
             devmod = None
 
             while self.running:
@@ -217,7 +217,8 @@ class Process_People_Counter(multiprocessing.Process):
                     # depthmap = 255 - depthmap
                     # cv2.imwrite("../capture/depth" + str(count) + ".jpg", depthmap)
                     if self.isDevMode == 1:
-                        devmod = np.concatenate((depthmap, line_seperate), axis=1)
+                        display2 = cv2.cvtColor(depthmap,cv2.COLOR_GRAY2BGR)
+                        devmod = np.concatenate((display2, line_seperate), axis=1)
                         # cv2.imshow("Depthmap", depthmap)
                     # if count % 10 == 0:
                     #     self.queue_update_pc.put(const.TYPE_IN)
@@ -227,8 +228,9 @@ class Process_People_Counter(multiprocessing.Process):
                         #     print "capture" + str(count)
                         # cv2.imwrite("../capture/back" + str(count) + ".jpg", display)
                         if self.isDevMode == 1:
-                            devmod = np.concatenate((devmod, display), axis=1)
-                            # devmod = np.concatenate((devmod, line_seperate), axis=1)
+                            display2 = cv2.cvtColor(display,cv2.COLOR_GRAY2BGR)
+                            devmod = np.concatenate((devmod, display2), axis=1)
+                            devmod = np.concatenate((devmod, line_seperate), axis=1)
                             # cv2.imshow("Background Subtraction", display)
                         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
                         # if res:
@@ -285,9 +287,10 @@ class Process_People_Counter(multiprocessing.Process):
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'fps = ' + str(int(1 / (time.time() - t1))), (10, 20), font, 0.5, (255, 255, 255), 1)
                         if self.isDevMode == 1:
-                            # devmod = np.concatenate((devmod, image_left), axis=1)
+                            devmod = np.concatenate((devmod, image_left), axis=1)
                             cv2.imshow("Develop Mod", devmod)
-                        cv2.imshow("Camera", image_left)
+                        else:
+                            cv2.imshow("Camera", image_left)
 
                     # print "-----------------------------" + str(count)
 
