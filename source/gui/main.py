@@ -36,8 +36,8 @@ class ThreadedClient:
                     self.lstProcess.remove(p)
                     return
 
-    def create_camera(self, ip_address, name_cam, macid):
-        p = PC_Manager(ip_address, self, self.root, self.lock, self.queue_update_pc, name_cam, macid)
+    def create_camera(self, ip_address, name_cam, macid, isDevMode):
+        p = PC_Manager(ip_address, self, self.root, self.lock, self.queue_update_pc, name_cam, macid, isDevMode)
         self.lstProcess.append(p)
         p.start()
 

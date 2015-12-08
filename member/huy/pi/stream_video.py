@@ -130,7 +130,7 @@ if __name__ == "__main__":
     except:
         pass
     try:
-        stream_process = Stream_Process(mac)
+        stream_process = Stream_Process(MAC_ADD)
         stream_process.start()
     except:
         pass
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         try:
             print 'alive = ' + str(stream_process.is_alive())
             if not stream_process.is_alive():
-                stream_process = Stream_Process(mac)
+                stream_process = Stream_Process(MAC_ADD)
                 stream_process.start()
                 time.sleep(1)
         except Exception, ex:

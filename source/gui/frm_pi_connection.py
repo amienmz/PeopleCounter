@@ -18,15 +18,17 @@ class FrmPiConnection(object):
         self.list_cam = []
         self.strEntryIp = StringVar()
         self.strCbb = StringVar()
+        self.isDevMode = IntVar()
         self.create_gui()
         self.ret = False
         self.macid = ''
         self.isNewFresh = False
+        self.btnRefresh_click()
 
     def show(self):
         self.toplevel.deiconify()
         self.toplevel.wait_window()
-        return self.ret, self.strEntryIp.get(), self.strName.get(), self.macid
+        return self.ret, self.strEntryIp.get(), self.strName.get(), self.macid, self.isDevMode.get()
 
     def btnConnect_click(self):
         try:
@@ -64,6 +66,7 @@ class FrmPiConnection(object):
 
     def btnRefresh_click(self):
         try:
+            self.cbbAvaibleCam['values'] = []
             self.running=False
             self.pi_socket.close()
             time.sleep(0.1)
@@ -231,3 +234,23 @@ class FrmPiConnection(object):
         self.entryName.configure(insertbackground="black")
         self.entryName.configure(width=184)
         self.cbbAvaibleCam.after(1000, func=lambda: self.update_combobox())
+
+        self.cknDev = Checkbutton(self.toplevel)
+        self.cknDev.place(relx=0.18, rely=0.82, relheight=0.17, relwidth=0.08)
+        self.cknDev.configure(activebackground="#d9d9d9")
+        self.cknDev.configure(activeforeground="#000000")
+        self.cknDev.configure(background=_bgcolor)
+        self.cknDev.configure(disabledforeground="#a3a3a3")
+        self.cknDev.configure(foreground="#000000")
+        self.cknDev.configure(highlightbackground="#d9d9d9")
+        self.cknDev.configure(highlightcolor="black")
+        self.cknDev.configure(justify=LEFT)
+        self.cknDev.configure(variable=self.isDevMode)
+        self.cknDev.configure(width=31)
+
+        self.Label4 = Label(self.toplevel)
+        self.Label4.place(relx=0.03, rely=0.82, height=21, width=57)
+        self.Label4.configure(background=_bgcolor)
+        self.Label4.configure(disabledforeground="#a3a3a3")
+        self.Label4.configure(foreground="#000000")
+        self.Label4.configure(text='''Dev mod:''')

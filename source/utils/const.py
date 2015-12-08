@@ -14,4 +14,4 @@ TYPE_OUT = 2
 STOP_PROCESS = 3
 CAMERAS_CONNECTED = 4
 JOIN = '*****'
-WEB_IP = 'http://10.20.13.180:3000/receiver'
+WEB_IP = 'http://10.20.13.172:3000/receiver'

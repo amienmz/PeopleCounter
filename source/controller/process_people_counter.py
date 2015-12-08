@@ -21,7 +21,7 @@ from source.learningMachine.detect import Detector
 
 
 class PC_Manager(object):
-    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid):
+    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid,isDevMode):
         self.threadClient = threadClient
         self.ip_address = ip_address
         # self.webAdress = "http://10.20.13.180:3000/receiver"
@@ -35,7 +35,7 @@ class PC_Manager(object):
         self.thread_execute_data = threading.Thread(target = self.wait_value_queue)
 
         # create process
-        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data)
+        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data,isDevMode)
         self.name_cam = name_cam
         self.macid = macid
 
@@ -102,12 +102,13 @@ class PC_Manager(object):
 
 
 class Process_People_Counter(multiprocessing.Process):
-    def __init__(self, ip_address, queue_update_pc, queue_execute_data):
+    def __init__(self, ip_address, queue_update_pc, queue_execute_data, isDevMode):
         multiprocessing.Process.__init__(self)
         self.ip_address = ip_address
         self.queue_update_pc = queue_update_pc
         self.running = True
         self.queue_execute_data = queue_execute_data
+        self.isDevMode = isDevMode
         # create dgram udp socket
         try:
             self.pi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -212,7 +213,8 @@ class Process_People_Counter(multiprocessing.Process):
                     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
                     # depthmap = 255 - depthmap
                     # cv2.imwrite("../capture/depth" + str(count) + ".jpg", depthmap)
-                    cv2.imshow("depthmap", depthmap)
+                    if self.isDevMode == 1:
+                        cv2.imshow("Depthmap", depthmap)
                     # if count % 10 == 0:
                     #     self.queue_update_pc.put(const.TYPE_IN)
                     if count > 1:
@@ -220,8 +222,8 @@ class Process_People_Counter(multiprocessing.Process):
                         # if np.sum(display) > 100:
                         #     print "capture" + str(count)
                         # cv2.imwrite("../capture/back" + str(count) + ".jpg", display)
-
-                        cv2.imshow("back1", display)
+                        if self.isDevMode == 1:
+                            cv2.imshow("Background Subtraction", display)
                         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
                         # if res:
                         #     # cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
@@ -231,14 +233,14 @@ class Process_People_Counter(multiprocessing.Process):
                         #         cv2.imshow("back", im_detected)
                         trackObj.resetTracking()
                         data, data150 = detectMoving.detectObjectInImage(display)
-                        if len(data150) > 0:
-                            count_y = 0
-                            for y in data150:
-                                # print y
-                                imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                                cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
-                                # cv2.imwrite("../capture/150/b"+str(count) + str(count_y)+'.jpg', imgx)
-                                count_y+=1
+                        # if len(data150) > 0:
+                        #     count_y = 0
+                        #     for y in data150:
+                        #         # print y
+                        #         imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                        #         cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
+                        #         # cv2.imwrite("../capture/150/b"+str(count) + str(count_y)+'.jpg', imgx)
+                        #         count_y+=1
 
                         if len(data) > 0:
                             for x in data:
@@ -251,27 +253,27 @@ class Process_People_Counter(multiprocessing.Process):
                                 #     cdetect+=1
                                 #     print cdetect
                                 cv2.circle(image_left,x[3],25,(255,255,255), 1)
-                                cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
+                                # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
                                 # trackObj.trackingObj(x[0], x[2])
                                 if detector.detect1(display, x[0], x[1], x[2]):
                                     trackObj.trackingObj(x[0], x[2], 25)
                                     # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
-                                    cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
-                                    cv2.circle(image_left,x[3],25,(255,255,255), 5)
+                                    # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
+                                    cv2.circle(image_left,x[3],25,(255,255,255), 3)
                                     y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
                                     imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/pass/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
 
-                                else:
-                                    y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
-                                    imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
+                                # else:
+                                #     y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
+                                #     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
                         trackObj.remove_track()
                         cv2.line(image_left, (0, 144 - 70), (352, 144 - 70), (255, 255, 255), 1)
-                        cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
+                        # cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
                         cv2.line(image_left, (0, 144 + 70), (352, 144 + 70), (255, 255, 255), 1)
                         cv2.putText(image_left, 'In: %i' % trackObj.InSh, (160, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
