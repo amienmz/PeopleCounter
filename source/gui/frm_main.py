@@ -94,6 +94,10 @@ class FrmMain(Frame):
             if ret:
                 self.lbCameras.delete(index)
                 self.lbCameras.insert(index, new_infor)
+            for p in self.threadClient.lstProcess:
+                if p.ip_address in infor:
+                    p.queue_execute_data.put(const.CHANGE_NAME)
+                    p.queue_execute_data.put(new_infor.split('-')[0])
         except Exception, ex:
             print('frmMain.btnEdit_click ' + str(ex))
 
