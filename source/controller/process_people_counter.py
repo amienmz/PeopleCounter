@@ -74,23 +74,39 @@ class PC_Manager(object):
         while self.running:
             try:
                 value = self.queue_execute_data.get()
+
+                if value == const.CHANGE_NAME:
+                    self.name_cam = self.queue_execute_data.get()
+                    print 'name_cam = ' + self.name_cam
+                    payload = {'message':'update_name','id': self.macid, 'name': self.name_cam}
+                    r = requests.post(const.WEB_IP, data=payload)
+                    print 'CHANGE_NAME'
+
+
                 if value == const.CAMERAS_CONNECTED:
                     self.macid = self.queue_execute_data.get()
                     print 'macid = ' + self.macid
-                    payload = {'id': self.macid, 'name': self.name_cam , 'status': 'true' }
+                    print 'name_cam = ' + self.name_cam
+                    payload = {'message':'update_status','id': self.macid, 'name': self.name_cam, 'status': 'true' }
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'CAMERAS_CONNECTED'
+
+
                 if value == const.STOP_PROCESS:
                     self.threadClient.remove_client(self.ip_address)
-                    payload = {'id': self.macid, 'name': self.name_cam , 'status': 'false' }
+                    payload = {'message':'update_status','id': self.macid, 'status': 'false' }
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'STOP_PROCESS'
+
+
                 if value == const.TYPE_IN:
-                    payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'true' , 'status': 'true' }
+                    payload = {'message':'count','id': self.macid, 'is_come': 'true'}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_IN'
+
+
                 if value == const.TYPE_OUT:
-                    payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'false' , 'status': 'true' }
+                    payload = {'message':'count','id': self.macid, 'is_come': 'false'}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_OUT'
             except Exception, ex:
