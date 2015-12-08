@@ -5,7 +5,6 @@ from source.utils import const
 from threading import Thread
 __author__ = 'huybu'
 from Tkinter import *
-import ipaddress
 from IPy import IP
 import ttk
 import tkMessageBox

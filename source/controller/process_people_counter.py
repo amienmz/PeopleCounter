@@ -208,6 +208,9 @@ class Process_People_Counter(multiprocessing.Process):
             # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
             # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
 
+            line_seperate = np.zeros((288,5),np.uint8) + 255
+            devmod = None
+
             while self.running:
                 t1 = time.time()
                 reply, addr = self.pi_socket.recvfrom(50000)
@@ -230,7 +233,8 @@ class Process_People_Counter(multiprocessing.Process):
                     # depthmap = 255 - depthmap
                     # cv2.imwrite("../capture/depth" + str(count) + ".jpg", depthmap)
                     if self.isDevMode == 1:
-                        cv2.imshow("Depthmap", depthmap)
+                        devmod = np.concatenate((depthmap, line_seperate), axis=1)
+                        # cv2.imshow("Depthmap", depthmap)
                     # if count % 10 == 0:
                     #     self.queue_update_pc.put(const.TYPE_IN)
                     if count > 1:
@@ -239,7 +243,9 @@ class Process_People_Counter(multiprocessing.Process):
                         #     print "capture" + str(count)
                         # cv2.imwrite("../capture/back" + str(count) + ".jpg", display)
                         if self.isDevMode == 1:
-                            cv2.imshow("Background Subtraction", display)
+                            devmod = np.concatenate((devmod, display), axis=1)
+                            # devmod = np.concatenate((devmod, line_seperate), axis=1)
+                            # cv2.imshow("Background Subtraction", display)
                         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
                         # if res:
                         #     # cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
@@ -294,7 +300,10 @@ class Process_People_Counter(multiprocessing.Process):
                         cv2.putText(image_left, 'In: %i' % trackObj.InSh, (160, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'fps = ' + str(int(1 / (time.time() - t1))), (10, 20), font, 0.5, (255, 255, 255), 1)
-                        cv2.imshow("back", image_left)
+                        if self.isDevMode == 1:
+                            # devmod = np.concatenate((devmod, image_left), axis=1)
+                            cv2.imshow("Develop Mod", devmod)
+                        cv2.imshow("Camera", image_left)
 
                     # print "-----------------------------" + str(count)
 
