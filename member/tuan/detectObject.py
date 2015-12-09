@@ -12,7 +12,7 @@ x = 1
 listHead = []
 lastNumberOfContour = 0
 
-image = cv2.imread('239.jpg', 0)
+image = cv2.imread('1810.jpg', 0)
 image = cv2.medianBlur(image, 31)
 cv2.imshow("image", image)
 cv2.waitKey(0)
