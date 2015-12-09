@@ -5,6 +5,7 @@ import cv2
 import numpy
 import time
 import zlib
+from datetime import datetime
 
 __author__ = 'huybu'
 
@@ -22,17 +23,17 @@ class Stream_Process(multiprocessing.Process):
         try:
             self.udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             print 'Socket created'
+            self.log('Socket created')
         except socket.error, msg:
             print 'Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+            self.log('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
             return
 
         # try:
         #     os.system("killall -9 Stream_Process")
         # except socket.error, msg:
         #     print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-        # Bind socket to local host and port
 
-        # now keep talking with the client
         self.capture_right = None
         self.capture_left = None
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 70]
@@ -47,35 +48,45 @@ class Stream_Process(multiprocessing.Process):
             time.sleep(0.1)
         except Exception, ex:
             print 'Unwanted exception stop_client_thread: ' + str(ex)
+            self.log('Unwanted exception stop_client_thread: ' + str(ex))
         try:
             self.client = None
         except:
             pass
         time.sleep(0.1)
 
+    def log(self, mess):
+        try:
+            with open("log.txt", "a") as myfile:
+                myfile.write(str(datetime.now())+": "+mess+"\r\n")
+        except:
+            pass
+
     def run(self):
         try:
+            # Bind socket to local host and port
             self.udpSocket.bind(('', const.PORT))
+            print 'Socket bind complete'
+            self.log('Socket bind complete')
         except socket.error, msg:
             print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
+            self.log('Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
             try:
                 os.kill(os.getpid(),9)
-                print('kill OK')
             except:
                 print 'can not self kill PROCESS'
+                self.log('can not self kill PROCESS')
                 return
 
-
-        print 'Socket bind complete'
-
+        # now keep talking with the client
         while True:
             try:
-                print 'check'
                 # receive data from client (data, addr)
                 datagram = self.udpSocket.recvfrom(1024)
                 data = datagram[const.POS_DATA]
                 address = datagram[const.POS_ADDRESS]
                 print "connect from " + address[const.POS_IP]
+                self.log("connect from " + address[const.POS_IP] + " with CMD_ID = " + data)
                 if data == const.CMD_CONNECT:
                     self.stop_client_thread()
                     capture_right = cv2.VideoCapture(0)
@@ -105,6 +116,7 @@ class Stream_Process(multiprocessing.Process):
                     os._exit(0)
             except Exception, ex:
                 print 'Unwanted exception: ' + str(ex)
+                self.log('Unwanted exception: ' + str(ex))
                 self.stop_client_thread()
                 pass
 
@@ -117,7 +129,6 @@ class Stream_Process(multiprocessing.Process):
 
         try:
             os.kill(os.getpid(),9)
-            print('kill OK')
         except:
             print 'can not self kill PROCESS'
             pass

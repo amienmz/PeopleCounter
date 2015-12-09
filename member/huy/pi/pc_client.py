@@ -5,6 +5,7 @@ import threading
 import cv2
 import time
 import zlib
+from datetime import datetime
 import const
 __author__ = 'huybu'
 
@@ -20,7 +21,15 @@ class PCClient(threading.Thread):
         self.capture_left = capture_left
         self.udpSocket = udpSocket
 
+    def log(self, mess):
+        try:
+            with open("log.txt", "a") as myfile:
+                myfile.write(str(datetime.now())+": "+mess+"\r\n")
+        except:
+            pass
+
     def run(self):
+        count_dead = 0
         while self.running:
             try:
                 ret, frame_right = self.capture_right.read()
@@ -33,17 +42,23 @@ class PCClient(threading.Thread):
                 dataLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1])
                 stringData = dataRight.tostring() + const.JOIN + dataLeft.tostring()
                 self.udpSocket.sendto(stringData, self.address)
+                count_dead = 0
             except Exception, ex:
-                print 'stop client exception'
-                print str(ex)
-                self.stopthread()
+                count_dead += 1
+                print 'Exception PCClient.run ' + str(ex)
+                self.log('Exception PCClient.run ' + str(ex))
+                if count_dead == 20:
+                    self.stopthread()
                 break
 
     def stopthread(self):
-        print 'stop client'
+        print 'PCClient.stopclient'
+        self.log('PCClient.stopclient')
         try:
             self.capture_right.release()
             self.capture_left.release()
-        except:
+        except Exception, ex:
+            print 'Exception PCClient.stopthread ' + str(ex)
+            self.log('Exception PCClient.stopthread ' + str(ex))
             pass
         self.running = False
