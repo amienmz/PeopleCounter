@@ -21,10 +21,10 @@ from source.learningMachine.detect import Detector
 
 
 class PC_Manager(object):
-    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid):
+    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid,isDevMode):
         self.threadClient = threadClient
         self.ip_address = ip_address
-        self.webAdress = "http://10.20.13.175:3000/receiver"
+        # self.webAdress = "http://10.20.13.180:3000/receiver"
         # self.queue_process_to_frm = multiprocessing.Queue()
         self.root = root_tk
         # self.frm_camera = FrmCamera(self.root, lock, self.queue_process_to_frm)
@@ -35,7 +35,7 @@ class PC_Manager(object):
         self.thread_execute_data = threading.Thread(target = self.wait_value_queue)
 
         # create process
-        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data)
+        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data,isDevMode)
         self.name_cam = name_cam
         self.macid = macid
 
@@ -74,18 +74,40 @@ class PC_Manager(object):
         while self.running:
             try:
                 value = self.queue_execute_data.get()
+
+                if value == const.CHANGE_NAME:
+                    self.name_cam = self.queue_execute_data.get()
+                    print 'name_cam = ' + self.name_cam
+                    payload = {'message':'update_name','id': self.macid, 'name': self.name_cam}
+                    r = requests.post(const.WEB_IP, data=payload)
+                    print 'CHANGE_NAME'
+
+
+                if value == const.CAMERAS_CONNECTED:
+                    self.macid = self.queue_execute_data.get()
+                    print 'macid = ' + self.macid
+                    print 'name_cam = ' + self.name_cam
+                    payload = {'message':'update_status','id': self.macid, 'name': self.name_cam, 'status': 'true' }
+                    r = requests.post(const.WEB_IP, data=payload)
+                    print 'CAMERAS_CONNECTED'
+
+
                 if value == const.STOP_PROCESS:
                     self.threadClient.remove_client(self.ip_address)
-                    payload = {'id': self.macid, 'name': self.name_cam , 'status': 'false' }
-                    r = requests.post(self.webAdress, data=payload)
+                    payload = {'message':'update_status','id': self.macid, 'status': 'false' }
+                    r = requests.post(const.WEB_IP, data=payload)
                     print 'STOP_PROCESS'
+
+
                 if value == const.TYPE_IN:
-                    payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'true' , 'status': 'true' }
-                    r = requests.post(self.webAdress, data=payload)
+                    payload = {'message':'count','id': self.macid, 'is_come': 'true'}
+                    r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_IN'
+
+
                 if value == const.TYPE_OUT:
-                    payload = {'id': self.macid, 'name': self.name_cam, 'is_come': 'false' , 'status': 'true' }
-                    r = requests.post(self.webAdress, data=payload)
+                    payload = {'message':'count','id': self.macid, 'is_come': 'false'}
+                    r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_OUT'
             except Exception, ex:
                 print 'Thread wait_value_queue ' + str(ex)
@@ -96,12 +118,13 @@ class PC_Manager(object):
 
 
 class Process_People_Counter(multiprocessing.Process):
-    def __init__(self, ip_address, queue_update_pc, queue_execute_data):
+    def __init__(self, ip_address, queue_update_pc, queue_execute_data, isDevMode):
         multiprocessing.Process.__init__(self)
         self.ip_address = ip_address
         self.queue_update_pc = queue_update_pc
         self.running = True
         self.queue_execute_data = queue_execute_data
+        self.isDevMode = isDevMode
         # create dgram udp socket
         try:
             self.pi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -182,14 +205,21 @@ class Process_People_Counter(multiprocessing.Process):
 
 
               #detete old data before write image
-            os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
-            os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
+            # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
+            # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
+
+            line_seperate = np.zeros((288,5,3),np.uint8) + 255
+            devmod = None
 
             while self.running:
                 t1 = time.time()
                 reply, addr = self.pi_socket.recvfrom(50000)
                 try:
-                    arr = reply.split('daicahuy')
+                    if not const.JOIN in reply:
+                        self.queue_execute_data.put(const.CAMERAS_CONNECTED)
+                        self.queue_execute_data.put(reply)
+                        continue
+                    arr = reply.split(const.JOIN)
                     dataRight = numpy.fromstring(arr[0], dtype='uint8')
                     dataLeft = numpy.fromstring(arr[1], dtype='uint8')
                     image_right = cv2.imdecode(dataRight, 1)
@@ -202,7 +232,10 @@ class Process_People_Counter(multiprocessing.Process):
                     depthmap = depthmapCalculator.calculate(image_left, image_right, block_matcher, calibration)
                     # depthmap = 255 - depthmap
                     # cv2.imwrite("../capture/depth" + str(count) + ".jpg", depthmap)
-                    cv2.imshow("depthmap", depthmap)
+                    if self.isDevMode == 1:
+                        display2 = cv2.cvtColor(depthmap,cv2.COLOR_GRAY2BGR)
+                        devmod = np.concatenate((display2, line_seperate), axis=1)
+                        # cv2.imshow("Depthmap", depthmap)
                     # if count % 10 == 0:
                     #     self.queue_update_pc.put(const.TYPE_IN)
                     if count > 1:
@@ -210,8 +243,11 @@ class Process_People_Counter(multiprocessing.Process):
                         # if np.sum(display) > 100:
                         #     print "capture" + str(count)
                         # cv2.imwrite("../capture/back" + str(count) + ".jpg", display)
-
-                        cv2.imshow("back1", display)
+                        if self.isDevMode == 1:
+                            display2 = cv2.cvtColor(display,cv2.COLOR_GRAY2BGR)
+                            devmod = np.concatenate((devmod, display2), axis=1)
+                            devmod = np.concatenate((devmod, line_seperate), axis=1)
+                            # cv2.imshow("Background Subtraction", display)
                         # res,pon1,pon2 = imgObjectMoving.getImgObjectMoving(mask)
                         # if res:
                         #     # cv2.rectangle(display,pon1, pon2,(255,255,255), 2)
@@ -221,52 +257,56 @@ class Process_People_Counter(multiprocessing.Process):
                         #         cv2.imshow("back", im_detected)
                         trackObj.resetTracking()
                         data, data150 = detectMoving.detectObjectInImage(display)
-                        if len(data150) > 0:
-                            count_y = 0
-                            for y in data150:
-                                # print y
-                                imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                                cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
-                                # cv2.imwrite("../capture/150/b"+str(count) + str(count_y)+'.jpg', imgx)
-                                count_y+=1
+                        # if len(data150) > 0:
+                        #     count_y = 0
+                        #     for y in data150:
+                        #         # print y
+                        #         imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                        #         cv2.rectangle(image_left,y[0], y[1],(255,255,255), 1)
+                        #         # cv2.imwrite("../capture/150/b"+str(count) + str(count_y)+'.jpg', imgx)
+                        #         count_y+=1
 
                         if len(data) > 0:
                             for x in data:
                                 count_y = 0
+                                print x
                                 # print x[0], x[1]
                                 # print x[1][0] - x[0][0], x[1][1] - x[0][1]
                                 # ckObj = trackObj.check_Obj(x[0],x[2])
                                 # if ckObj == False:
                                 #     cdetect+=1
                                 #     print cdetect
-
-                                cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
-                                trackObj.trackingObj(x[0], x[2])
+                                cv2.circle(image_left,x[3],25,(255,255,255), 1)
+                                # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
+                                # trackObj.trackingObj(x[0], x[2])
                                 if detector.detect1(display, x[0], x[1], x[2]):
-                                    trackObj.trackingObj(x[0], x[2])
+                                    trackObj.trackingObj(x[0], x[2], 25)
                                     # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
-                                    cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
-
-                                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 5)
+                                    # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
+                                    cv2.circle(image_left,x[3],25,(255,255,255), 3)
                                     y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
                                     imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
-                                    cv2.imwrite("../capture/pass/q"+str(count)+str(count_y) + '.jpg', imgx)
+                                    # cv2.imwrite("../capture/pass/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
 
-                                else:
-                                    y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
-                                    imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
-                                    cv2.imwrite("../capture/fail/q"+str(count)+str(count_y) + '.jpg', imgx)
+                                # else:
+                                #     y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
+                                #     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
+                                    # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
                         trackObj.remove_track()
                         cv2.line(image_left, (0, 144 - 70), (352, 144 - 70), (255, 255, 255), 1)
-                        cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
+                        # cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
                         cv2.line(image_left, (0, 144 + 70), (352, 144 + 70), (255, 255, 255), 1)
                         cv2.putText(image_left, 'In: %i' % trackObj.InSh, (160, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'fps = ' + str(int(1 / (time.time() - t1))), (10, 20), font, 0.5, (255, 255, 255), 1)
-                        cv2.imshow("back", image_left)
+                        if self.isDevMode == 1:
+                            devmod = np.concatenate((devmod, image_left), axis=1)
+                            cv2.imshow("Develop Mod", devmod)
+                        else:
+                            cv2.imshow("Camera", image_left)
 
                     # print "-----------------------------" + str(count)
 

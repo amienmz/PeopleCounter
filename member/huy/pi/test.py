@@ -1,21 +1,13 @@
 import numpy as np
+import os
 import cv2
 import time
 
-cap = cv2.VideoCapture('../../../data/outputL24.avi')
-time.sleep(2)
-while(True):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    # if ret == True:
-    # # Our operations on the frame come here
-    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Display the resulting frame
-    cv2.imshow('frame',frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-# When everything done, release the capture
-cap.release()
-cv2.destroyAllWindows()
+print '1'
+print '2'
+print '3'
+print '4'
+os.kill(os.getpid(),9)
+print '5'
+print '6'
+print '7'

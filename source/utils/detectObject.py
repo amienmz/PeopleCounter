@@ -172,6 +172,6 @@ class DetectMoving(object):
         PosObj150 = []
         for cn in listHead:
             datax,datay = self.resize4detect(cn,cn,(0,0),w,h)
-            PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1])))
+            PosObj.append((datax,datay,(datay[0]-datax[0],datay[1]-datax[1]),cn))
             PosObj150.append((self.CheckRectDetect(cn,cn,(0,0),w,h)))
         return  PosObj, PosObj150

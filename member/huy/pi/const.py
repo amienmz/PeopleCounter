@@ -9,3 +9,4 @@ CMD_DISCONNECT = 'disconnect'
 CMD_OK = 'ok'
 CMD_CHECK = 'check'
 PORT=8888
+JOIN = '*****'

@@ -67,12 +67,12 @@ class FrmMain(Frame):
         self._root().update()
 
     def btnInsert_click(self):
-        ret, ip_address, name_cam, macid = FrmPiConnection(self, self.lbCameras).show()
+        ret, ip_address, name_cam, macid, isDevMode = FrmPiConnection(self, self.lbCameras).show()
         if not ret:
             return
         if ip_address and name_cam:
             print ip_address
-            self.threadClient.create_camera(ip_address, name_cam, macid)
+            self.threadClient.create_camera(ip_address, name_cam, macid, isDevMode)
             self.insert_cam(ip_address, name_cam)
 
     def remove_client(self, ip_address):
@@ -94,6 +94,10 @@ class FrmMain(Frame):
             if ret:
                 self.lbCameras.delete(index)
                 self.lbCameras.insert(index, new_infor)
+            for p in self.threadClient.lstProcess:
+                if p.ip_address in infor:
+                    p.queue_execute_data.put(const.CHANGE_NAME)
+                    p.queue_execute_data.put(new_infor.split('-')[0])
         except Exception, ex:
             print('frmMain.btnEdit_click ' + str(ex))
 
@@ -203,7 +207,7 @@ class FrmMain(Frame):
         self.Label3.configure(text='''Stay :''')
 
         self.lblIn = Label(master)
-        self.lblIn.place(relx=0.81, rely=0.07, height=31, width=16)
+        self.lblIn.place(relx=0.81, rely=0.07, height=31, width=56)
         self.lblIn.configure(activebackground="#f9f9f9")
         self.lblIn.configure(activeforeground="black")
         self.lblIn.configure(background=_bgcolor)
@@ -215,7 +219,7 @@ class FrmMain(Frame):
         self.lblIn.configure(text='''0''')
 
         self.lblOut = Label(master)
-        self.lblOut.place(relx=0.81, rely=0.16, height=31, width=16)
+        self.lblOut.place(relx=0.81, rely=0.16, height=31, width=56)
         self.lblOut.configure(activebackground="#f9f9f9")
         self.lblOut.configure(activeforeground="black")
         self.lblOut.configure(background=_bgcolor)
@@ -227,7 +231,7 @@ class FrmMain(Frame):
         self.lblOut.configure(text='''0''')
 
         self.lblStay = Label(master)
-        self.lblStay.place(relx=0.81, rely=0.26, height=31, width=16)
+        self.lblStay.place(relx=0.81, rely=0.26, height=31, width=56)
         self.lblStay.configure(activebackground="#f9f9f9")
         self.lblStay.configure(activeforeground="black")
         self.lblStay.configure(background=_bgcolor)
