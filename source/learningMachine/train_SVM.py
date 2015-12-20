@@ -26,7 +26,7 @@ if __name__ == "__main__":
     for feat_path in glob.glob(os.path.join(pos_feat_path,"*.feat")):
         fd = joblib.load(feat_path)
         # print len(fd)
-        if len(fd) == 800:
+        if len(fd) == 900:
             fds.append(fd)
             labels.append(1)
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     for feat_path in glob.glob(os.path.join(neg_feat_path,"*.feat")):
         fd = joblib.load(feat_path)
         # print len(fd)
-        if len(fd) == 800:
+        if len(fd) == 900:
             fds.append(fd)
             labels.append(0)
     print "Start train " + str(len(labels)) + " samples"
