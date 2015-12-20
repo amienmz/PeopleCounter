@@ -143,10 +143,10 @@ class Process_People_Counter(multiprocessing.Process):
         except:
             pass
         print 'STOP PROCESS END'
-        try:
-            os.kill(self.pid, 9)
-        except:
-            pass
+        # try:
+        #     os.kill(self.pid, 9)
+        # except:
+        #     pass
 
     def run(self):
         # load calibration data to calculate depth map
