@@ -63,11 +63,12 @@ class PCClient(threading.Thread):
     def stopthread(self):
         print 'PCClient.stopclient'
         self.log('PCClient.stopclient')
+        self.running = False
+        time.sleep(1)
         try:
             self.capture_right.release()
             self.capture_left.release()
         except Exception, ex:
             print 'Exception PCClient.stopthread ' + str(ex)
             self.log('Exception PCClient.stopthread ' + str(ex))
-            pass
-        self.running = False
+
