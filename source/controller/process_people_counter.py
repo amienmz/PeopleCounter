@@ -21,7 +21,7 @@ from source.learningMachine.detect import Detector
 
 
 class PC_Manager(object):
-    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid,isDevMode):
+    def __init__(self, ip_address, threadClient, root_tk, lock, queue_update_pc, name_cam, macid, isDevMode):
         self.threadClient = threadClient
         self.ip_address = ip_address
         # self.webAdress = "http://10.20.13.180:3000/receiver"
@@ -32,10 +32,10 @@ class PC_Manager(object):
 
         self.queue_execute_data = multiprocessing.Queue()
         self.running = True
-        self.thread_execute_data = threading.Thread(target = self.wait_value_queue)
+        self.thread_execute_data = threading.Thread(target=self.wait_value_queue)
 
         # create process
-        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data,isDevMode)
+        self.process_pc = Process_People_Counter(self.ip_address, queue_update_pc, self.queue_execute_data, isDevMode)
         self.name_cam = name_cam
         self.macid = macid
 
@@ -53,7 +53,7 @@ class PC_Manager(object):
         time.sleep(0.1)
         try:
             self.queue_execute_data.close()
-        except Exception,ex:
+        except Exception, ex:
             print 'STOP thread_wait_stop ' + str(ex)
             pass
 
@@ -62,12 +62,10 @@ class PC_Manager(object):
             self.process_pc.terminate()
         except Exception, ex:
             print 'Process terminate exception ' + str(ex)
-            pass
         try:
             self.process_pc.join()
         except Exception, ex:
             print 'Process join exception ' + str(ex)
-            pass
 
     def wait_value_queue(self):
         # thread wait to romove PI and post data to web
@@ -78,43 +76,36 @@ class PC_Manager(object):
                 if value == const.CHANGE_NAME:
                     self.name_cam = self.queue_execute_data.get()
                     print 'name_cam = ' + self.name_cam
-                    payload = {'message':'update_name','id': self.macid, 'name': self.name_cam}
+                    payload = {'message': 'update_name', 'id': self.macid, 'name': self.name_cam}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'CHANGE_NAME'
-
 
                 if value == const.CAMERAS_CONNECTED:
                     self.macid = self.queue_execute_data.get()
                     print 'macid = ' + self.macid
                     print 'name_cam = ' + self.name_cam
-                    payload = {'message':'update_status','id': self.macid, 'name': self.name_cam, 'status': 'true' }
+                    payload = {'message': 'update_status', 'id': self.macid, 'name': self.name_cam, 'status': 'true'}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'CAMERAS_CONNECTED'
 
-
                 if value == const.STOP_PROCESS:
                     self.threadClient.remove_client(self.ip_address)
-                    payload = {'message':'update_status','id': self.macid, 'status': 'false' }
+                    payload = {'message': 'update_status', 'id': self.macid, 'status': 'false'}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'STOP_PROCESS'
 
-
                 if value == const.TYPE_IN:
-                    payload = {'message':'count','id': self.macid, 'is_come': 'true'}
+                    payload = {'message': 'count', 'id': self.macid, 'is_come': 'true'}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_IN'
 
-
                 if value == const.TYPE_OUT:
-                    payload = {'message':'count','id': self.macid, 'is_come': 'false'}
+                    payload = {'message': 'count', 'id': self.macid, 'is_come': 'false'}
                     r = requests.post(const.WEB_IP, data=payload)
                     print 'TYPE_OUT'
             except Exception, ex:
                 print 'Thread wait_value_queue ' + str(ex)
                 pass
-
-
-# video recorder
 
 
 class Process_People_Counter(multiprocessing.Process):
@@ -137,27 +128,27 @@ class Process_People_Counter(multiprocessing.Process):
         self.running = False
         try:
             self.pi_socket.sendto(const.CMD_DISCONNECT, (self.ip_address, const.PORT))
-        except:
-            pass
+        except Exception, ex:
+            print 'Process_People_Counter.STOP PI_SOCKET send disconect exception ???' + str(ex)
         try:
             socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(const.CMD_CONNECT, ('localhost', const.PORT))
         except Exception, ex:
-            print 'socket.socket Exception ???' + str(ex)
-            pass
+            print 'Process_People_Counter.socket Exception ???' + str(ex)
         try:
             self.pi_socket.close()
         except Exception, ex:
-            print 'pi_socket cannot close ???' + str(ex)
+            print 'Process_People_Counter.socket.close Exception???' + str(ex)
         try:
             self.queue_execute_data.put(const.STOP_PROCESS)
         except:
             pass
         print 'STOP PROCESS END'
-        return
+        try:
+            os.kill(self.pid, 9)
+        except:
+            pass
 
     def run(self):
-        print "I'm here " + self.ip_address
-
         # load calibration data to calculate depth map
         depthmapCalculator = DepthmapCalculator('../../data/calibration2')
 
@@ -174,7 +165,7 @@ class Process_People_Counter(multiprocessing.Process):
         detector = Detector(min_window_size=(150, 150), step_size=(30, 30), downscale=1)
 
         # init tracking
-        trackObj = TrackingObj(self.queue_update_pc,self.queue_execute_data)
+        trackObj = TrackingObj(self.queue_update_pc, self.queue_execute_data)
 
         # subtract moving object
         imgObjectMoving = ObjectMoving(150, 150, 30)
@@ -195,7 +186,7 @@ class Process_People_Counter(multiprocessing.Process):
                 port = int(arr[1])
             self.pi_socket.sendto(const.CMD_CONNECT, (self.ip_address, port))
             self.pi_socket.settimeout(5)
-            print 'send ok'
+            print 'send CMD_CONNECT ok to ' + self.ip_address
 
             # CODEC = cv2.cv.CV_FOURCC('M','P','4','V') # MPEG-4 = MPEG-1
             #
@@ -204,11 +195,11 @@ class Process_People_Counter(multiprocessing.Process):
             # video_writer_left = cv2.VideoWriter("outputL24.avi", CODEC, 24, (352, 288))
 
 
-              #detete old data before write image
+            # detete old data before write image
             # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/pass/*")
             # os.system("rm -rf /home/pc/PycharmProjects/PeopleCounter/source/capture/fail/*")
 
-            line_seperate = np.zeros((288,5,3),np.uint8) + 255
+            line_seperate = np.zeros((288, 5, 3), np.uint8) + 255
             devmod = None
 
             while self.running:
@@ -233,7 +224,7 @@ class Process_People_Counter(multiprocessing.Process):
                     # depthmap = 255 - depthmap
                     # cv2.imwrite("../capture/depth" + str(count) + ".jpg", depthmap)
                     if self.isDevMode == 1:
-                        display2 = cv2.cvtColor(depthmap,cv2.COLOR_GRAY2BGR)
+                        display2 = cv2.cvtColor(depthmap, cv2.COLOR_GRAY2BGR)
                         devmod = np.concatenate((display2, line_seperate), axis=1)
                         # cv2.imshow("Depthmap", depthmap)
                     # if count % 10 == 0:
@@ -244,7 +235,7 @@ class Process_People_Counter(multiprocessing.Process):
                         #     print "capture" + str(count)
                         # cv2.imwrite("../capture/back" + str(count) + ".jpg", display)
                         if self.isDevMode == 1:
-                            display2 = cv2.cvtColor(display,cv2.COLOR_GRAY2BGR)
+                            display2 = cv2.cvtColor(display, cv2.COLOR_GRAY2BGR)
                             devmod = np.concatenate((devmod, display2), axis=1)
                             devmod = np.concatenate((devmod, line_seperate), axis=1)
                             # cv2.imshow("Background Subtraction", display)
@@ -276,7 +267,7 @@ class Process_People_Counter(multiprocessing.Process):
                                 # if ckObj == False:
                                 #     cdetect+=1
                                 #     print cdetect
-                                cv2.circle(image_left,x[3],25,(255,255,255), 1)
+                                cv2.circle(image_left, x[3], 25, (255, 255, 255), 1)
                                 # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
                                 # trackObj.trackingObj(x[0], x[2])
                                 if detector.detect1(display, x[0], x[1], x[2]):
@@ -284,15 +275,15 @@ class Process_People_Counter(multiprocessing.Process):
                                     # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
                                     # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
-                                    cv2.circle(image_left,x[3],25,(255,255,255), 3)
-                                    y = (detectMoving.CheckRectDetect(x[0],x[1],x[2],352,288))
-                                    imgx = display[y[0][1]:y[1][1],y[0][0]:y[1][0]]
+                                    cv2.circle(image_left, x[3], 25, (255, 255, 255), 3)
+                                    y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
+                                    imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/pass/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
 
-                                # else:
-                                #     y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
-                                #     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
+                                    # else:
+                                    #     y = (detectMoving.CheckRectDetect(x[0], x[1], x[2], 352, 288))
+                                    #     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
                         trackObj.remove_track()
@@ -301,7 +292,8 @@ class Process_People_Counter(multiprocessing.Process):
                         cv2.line(image_left, (0, 144 + 70), (352, 144 + 70), (255, 255, 255), 1)
                         cv2.putText(image_left, 'In: %i' % trackObj.InSh, (160, 20), font, 0.5, (255, 255, 255), 1)
                         cv2.putText(image_left, 'Out: %i' % trackObj.OutSh, (160, 276), font, 0.5, (255, 255, 255), 1)
-                        cv2.putText(image_left, 'fps = ' + str(int(1 / (time.time() - t1))), (10, 20), font, 0.5, (255, 255, 255), 1)
+                        cv2.putText(image_left, 'fps = ' + str(int(1 / (time.time() - t1))), (10, 20), font, 0.5,
+                                    (255, 255, 255), 1)
                         if self.isDevMode == 1:
                             devmod = np.concatenate((devmod, image_left), axis=1)
                             cv2.imshow("Develop Mod", devmod)

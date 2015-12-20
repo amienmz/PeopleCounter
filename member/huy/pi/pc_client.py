@@ -30,10 +30,19 @@ class PCClient(threading.Thread):
 
     def run(self):
         count_dead = 0
+        self.log("START PCClient.run")
         while self.running:
             try:
-                ret, frame_right = self.capture_right.read()
-                ret, frame_left = self.capture_left.read()
+                ret1, frame_right = self.capture_right.read()
+                ret2, frame_left = self.capture_left.read()
+                if not ret1 or not ret2:
+                    print 'cannot capture cameras'
+                    self.log('PCClient.run cannot capture cameras ')
+                    count_dead +=1
+                    if count_dead == 10:
+                        self.stopthread()
+                        break
+                    continue
                 # comRight = numpy.array(cv2.imencode('.jpg', frame_right, self.encode_param)[1]).tostring()
                 # comLeft = numpy.array(cv2.imencode('.jpg', frame_left, self.encode_param)[1]).tostring()
                 # dataRight = numpy.array(comRight)
@@ -47,9 +56,9 @@ class PCClient(threading.Thread):
                 count_dead += 1
                 print 'Exception PCClient.run ' + str(ex)
                 self.log('Exception PCClient.run ' + str(ex))
-                if count_dead == 20:
+                if count_dead == 10:
                     self.stopthread()
-                break
+                    break
 
     def stopthread(self):
         print 'PCClient.stopclient'

@@ -19,13 +19,12 @@ class Stream_Process(multiprocessing.Process):
     def __init__(self, mac):
         multiprocessing.Process.__init__(self)
         self.macid = mac
+        self.log("==================================")
         # Datagram (udp) socket
         try:
             self.udpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            print 'Socket created'
             self.log('Socket created')
         except socket.error, msg:
-            print 'Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
             self.log('Failed to create socket. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
             return
 
@@ -36,10 +35,11 @@ class Stream_Process(multiprocessing.Process):
 
         self.capture_right = None
         self.capture_left = None
-        self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 70]
+        # self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 70]
         self.client = None
 
     def stop_client_thread(self):
+        self.log("START stop_client_thread")
         try:
             if self.client is not None:
                 self.client.stopthread()
@@ -47,36 +47,45 @@ class Stream_Process(multiprocessing.Process):
                 self.client.join()
             time.sleep(0.1)
         except Exception, ex:
-            print 'Unwanted exception stop_client_thread: ' + str(ex)
             self.log('Unwanted exception stop_client_thread: ' + str(ex))
+        try:
+            self.capture_right.release()
+            self.capture_left.release()
+        except:
+            pass
         try:
             self.client = None
         except:
             pass
         time.sleep(0.1)
+        self.log("END stop_client_thread")
 
     def log(self, mess):
         try:
+            print mess
             with open("log.txt", "a") as myfile:
                 myfile.write(str(datetime.now())+": "+mess+"\r\n")
         except:
             pass
 
+    def self_kill(self):
+        try:
+            self.log("SELF KILL subprocess ID = " + str(self.pid))
+            os.kill(self.pid,9)
+            time.sleep(1)
+        except:
+            self.log('Stream_Process.self_kill PROCESS exception')
+
     def run(self):
+        self.log("START NEW PROCESS ID " + str(self.pid))
         try:
             # Bind socket to local host and port
             self.udpSocket.bind(('', const.PORT))
-            print 'Socket bind complete'
-            self.log('Socket bind complete')
+            self.log('Socket bind at PORT = '+ str(const.PORT) +' completed')
         except socket.error, msg:
-            print 'Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-            self.log('Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
-            try:
-                os.kill(os.getpid(),9)
-            except:
-                print 'can not self kill PROCESS'
-                self.log('can not self kill PROCESS')
-                return
+            self.log('Socket bind at PORT = '+ str(const.PORT) +' FAILD' + ' Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+            self.self_kill()
+            return
 
         # now keep talking with the client
         while True:
@@ -85,20 +94,20 @@ class Stream_Process(multiprocessing.Process):
                 datagram = self.udpSocket.recvfrom(1024)
                 data = datagram[const.POS_DATA]
                 address = datagram[const.POS_ADDRESS]
-                print "connect from " + address[const.POS_IP]
-                self.log("connect from " + address[const.POS_IP] + " with CMD_ID = " + data)
+                self.log("connect from " + address[const.POS_IP] + " with CMD = " + data)
                 if data == const.CMD_CONNECT:
                     self.stop_client_thread()
-                    capture_right = cv2.VideoCapture(0)
-                    capture_right.set(3, 352)
-                    capture_right.set(4, 288)
-                    capture_right.set(5, 24)
-                    capture_left = cv2.VideoCapture(1)
-                    capture_left.set(3, 352)
-                    capture_left.set(4, 288)
-                    capture_left.set(5, 24)
+                    self.capture_right = cv2.VideoCapture(0)
+                    self.capture_right.set(3, 352)
+                    self.capture_right.set(4, 288)
+                    self.capture_right.set(5, 24)
+                    self.capture_left = cv2.VideoCapture(1)
+                    self.capture_left.set(3, 352)
+                    self.capture_left.set(4, 288)
+                    self.capture_left.set(5, 24)
                     self.udpSocket.sendto(self.macid, address)
-                    self.client = PCClient(address, capture_right, capture_left, self.udpSocket)
+                    self.log("SEND "+self.macid+" to "+address[const.POS_IP])
+                    self.client = PCClient(address, self.capture_right, self.capture_left, self.udpSocket)
                     self.client.start()
                 if data == const.CMD_CHECK:
                     self.udpSocket.sendto(MAC_ADD, (address[const.POS_IP],9999))
@@ -115,8 +124,7 @@ class Stream_Process(multiprocessing.Process):
                 except SystemExit:
                     os._exit(0)
             except Exception, ex:
-                print 'Unwanted exception: ' + str(ex)
-                self.log('Unwanted exception: ' + str(ex))
+                self.log('Stream_Process.RUN exception: ' + str(ex))
                 self.stop_client_thread()
                 pass
 
@@ -124,14 +132,16 @@ class Stream_Process(multiprocessing.Process):
             self.udpSocket.close()
             cv2.destroyAllWindows()
         except:
-            print('close udp exception')
-            pass
+            self.log('close udp exception')
 
-        try:
-            os.kill(os.getpid(),9)
-        except:
-            print 'can not self kill PROCESS'
-            pass
+        self.self_kill()
+
+def log(mess):
+    try:
+        with open("log.txt", "a") as myfile:
+            myfile.write(str(datetime.now())+": "+mess+"\r\n")
+    except:
+        pass
 
 if __name__ == "__main__":
     MAC_ADD = ''
@@ -140,19 +150,27 @@ if __name__ == "__main__":
         MAC_ADD = ':'.join(("%012X" % mac)[i:i+2] for i in range(0, 12, 2))
     except:
         pass
+    pid = -123
     try:
         stream_process = Stream_Process(MAC_ADD)
         stream_process.start()
+        pid = stream_process.pid
     except:
         pass
 
     while True:
         time.sleep(2)
         try:
-            print 'alive = ' + str(stream_process.is_alive())
             if not stream_process.is_alive():
+                try:
+                    log("Kill subprocess ID = " + str(pid))
+                    os.kill(pid,9)
+                    time.sleep(1)
+                except:
+                    pass
                 stream_process = Stream_Process(MAC_ADD)
                 stream_process.start()
+                pid = stream_process.pid
                 time.sleep(1)
         except Exception, ex:
                 print 'WHILE SLEEP 2s EXCEPTION ' + str(ex)
