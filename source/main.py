@@ -17,7 +17,7 @@ streamer = VideoStreamer('../data/outputL24.avi','../data/outputR24.avi')
 videoLeft, videoRight = streamer.get_video_data()
 
 # load calibration data to calculate depth map
-depthmapCalculator = DepthmapCalculator('../data/calibration2')
+depthmapCalculator = DepthmapCalculator('../data/calibration')
 
 # calibrate camera
 calibration = depthmapCalculator.get_calibration()

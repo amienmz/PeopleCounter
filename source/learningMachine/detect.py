@@ -6,7 +6,6 @@ from skimage.feature import hog
 from sklearn.externals import joblib
 import cv2
 import argparse as ap
-from nms import nms
 from config import *
 
 class Detector(object):
@@ -71,9 +70,6 @@ class Detector(object):
 
         # Display the results before performing NMS
         clone = image.copy()
-
-        detections = nms(detections, threshold)
-
         # Display the results after performing NMS
         for (x_tl, y_tl, _, w, h) in detections:
             # Draw the detections

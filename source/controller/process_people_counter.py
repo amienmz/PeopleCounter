@@ -150,7 +150,7 @@ class Process_People_Counter(multiprocessing.Process):
 
     def run(self):
         # load calibration data to calculate depth map
-        depthmapCalculator = DepthmapCalculator('../../data/calibration2')
+        depthmapCalculator = DepthmapCalculator('../../data/calibration')
 
         # calibrate camera
         calibration = depthmapCalculator.get_calibration()
