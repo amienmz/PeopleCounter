@@ -257,6 +257,8 @@ class Process_People_Counter(multiprocessing.Process):
                         #         # cv2.imwrite("../capture/150/b"+str(count) + str(count_y)+'.jpg', imgx)
                         #         count_y+=1
 
+                        # List center point of objects
+                        lstPointObjects = []
                         if len(data) > 0:
                             for x in data:
                                 count_y = 0
@@ -271,8 +273,9 @@ class Process_People_Counter(multiprocessing.Process):
                                 # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 2)
                                 # trackObj.trackingObj(x[0], x[2])
                                 if detector.detect1(display, x[0], x[1], x[2]):
-                                    trackObj.trackingObj(x[0], x[2], 25)
-                                    # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
+                                    lstPointObjects.append(x[3])
+                                    # trackObj.trackingObj(x[0], x[2], 25)
+                                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
                                     # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
                                     cv2.circle(image_left, x[3], 25, (255, 255, 255), 3)
@@ -286,6 +289,7 @@ class Process_People_Counter(multiprocessing.Process):
                                     #     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
+                        trackObj.trackingAllObject(lstPointObjects)
                         trackObj.remove_track()
                         cv2.line(image_left, (0, 144 - 70), (352, 144 - 70), (255, 255, 255), 1)
                         # cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
