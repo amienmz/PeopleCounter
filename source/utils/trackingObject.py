@@ -1,3 +1,4 @@
+import time
 from source.utils import const
 
 __author__ = 'pc'
@@ -25,6 +26,7 @@ class TrackingObj(object):
     def resetTracking(self):
         for data in self.allObj:
             data.ClearExist()
+            data.clearTemp()
         return None
 
     def remove_track(self):
@@ -36,7 +38,6 @@ class TrackingObj(object):
                     data.AddFramePass()
                 else:
                     self.allObj.remove(data)
-            data.clearTemp()
         return None
 
     def sysn_line(self, data, y, rad):
@@ -96,69 +97,80 @@ class TrackingObj(object):
 
     def trackingAllObject(self, arrPointObject):
 
-        # print x,y,w,h
-        haveline = False
         if len(self.allObj) == 0:
             for newPoint in arrPointObject:
                 obj = Object(newPoint[X], newPoint[Y], rad, True)
                 self.allObj.append(obj)
                 return
 
-        # # sort listobject by noNumberLostFrame
-        # self.allObj.sort(key=lambda x: x.numberLostFrame, reverse=False)
-
-        # newpoint - is map with last point
-        dictNewPointMapped = {}
-        # print '1'
-        for newPoint in arrPointObject:
-            dictNewPointMapped.update({str(newPoint): False})
-            # print '2'
+        # print '()()()()()()()()()()()()()()()()(()'
+        count =0
+        while not (len(arrPointObject) == 0 or self.isAllOldPointMapped()):
+            count += 1
+            if count > 100:
+                break
+            # print '--------------'
+            # print 'len(arrNew) = ' + str(len(arrPointObject)) + ' isAllMapped = ' + str(self.isAllOldPointMapped())
+            newPoint = arrPointObject[0]
+            print '1'
             minLength = 9999
-            tempPoint = None
+            tempLastPoint = None
             for lastPoint in self.allObj:
                 if isinstance(lastPoint, Object):
                     lenth = lastPoint.calculatorDistanceToPoint(newPoint)
+                    print 'len = ' + str(lenth) + ' minLen ' + str(minLength)
                     if lenth < minLength:
+                        print '1b'
                         minLength = lenth
-                        tempPoint = lastPoint
-            if tempPoint is None:
-                continue
-            if tempPoint.tempNextPoint is None:
-                tempPoint.tempMinDistance = minLength
-                tempPoint.tempNextPoint = newPoint
-                dictNewPointMapped.update({str(newPoint): True})
-                # print '3'
-            elif tempPoint.tempMinDistance < minLength:
-                # edit last map point to false
-                dictNewPointMapped.update({str(tempPoint.tempNextPoint): False})
-                # print '4'
-                tempPoint.tempMinDistance = minLength
-                tempPoint.tempNextPoint = newPoint
-                dictNewPointMapped.update({str(newPoint): True})
-                # print '5'
-
+                        tempLastPoint = lastPoint
+            if not tempLastPoint is None:
+                # print '1c'
+                # print 'lastPoint MinLen = ' + str(tempLastPoint.tempMinDistance)
+                if not tempLastPoint.tempNextPoint is None:
+                    # print '1d'
+                    if minLength < tempLastPoint.tempMinDistance:
+                        arrPointObject.append(tempLastPoint.tempNextPoint)
+                        tempLastPoint.tempNextPoint = newPoint
+                        tempLastPoint.tempMinDistance = minLength
+                        arrPointObject.remove(newPoint)
+                else:
+                    # print '1e'
+                    tempLastPoint.tempNextPoint = newPoint
+                    tempLastPoint.tempMinDistance = minLength
+                    arrPointObject.remove(newPoint)
+        print '2'
         for newPoint in arrPointObject:
-            if not dictNewPointMapped.has_key(str(newPoint)):
-                obj = Object(newPoint[X], newPoint[Y], rad, True)
-                self.allObj.append(obj)
-            elif not dictNewPointMapped[str(newPoint)]:
-                obj = Object(newPoint[X], newPoint[Y], rad, True)
-                self.allObj.append(obj)
-        # print '6'
+            obj = Object(newPoint[X], newPoint[Y], rad, True)
+            self.allObj.append(obj)
+
+        print '3'
         for lastPoint in self.allObj:
             if isinstance(lastPoint, Object):
-                if not lastPoint.tempNextPoint is None:
-                    lastPoint.updateObject()
-                    res, ln = self.sysn_line(lastPoint, lastPoint.y, rad)
-                    if res:
-                        inout = lastPoint.CheckInOut(ln)
-                        if inout == 0:
-                            self.OutSh += 1
-                            self.queue_update_pc.put(const.TYPE_OUT)
-                            self.queue_post2web.put(const.TYPE_OUT)
-                        elif inout == 1:
-                            self.InSh += 1
-                            self.queue_update_pc.put(const.TYPE_IN)
-                            self.queue_post2web.put(const.TYPE_IN)
-                else:
+                if lastPoint.tempNextPoint is None:
                     lastPoint.AddFramePass()
+                else:
+                    if lastPoint.tempMinDistance < (lastPoint.numberLostFrame+2)*rad:
+                        lastPoint.updateObject()
+                        res, ln = self.sysn_line(lastPoint, lastPoint.y, rad)
+                        if res:
+                            inout = lastPoint.CheckInOut(ln)
+                            if inout == 0:
+                                self.OutSh += 1
+                                self.queue_update_pc.put(const.TYPE_OUT)
+                                self.queue_post2web.put(const.TYPE_OUT)
+                            elif inout == 1:
+                                self.InSh += 1
+                                self.queue_update_pc.put(const.TYPE_IN)
+                                self.queue_post2web.put(const.TYPE_IN)
+                    else:
+                        obj = Object(newPoint[X], newPoint[Y], rad, True)
+                        self.allObj.append(obj)
+
+
+    def isAllOldPointMapped(self):
+        count = 0
+        for ob in self.allObj:
+            if isinstance(ob,Object):
+                if not ob.isExist:
+                    count += 1
+        return count == 0

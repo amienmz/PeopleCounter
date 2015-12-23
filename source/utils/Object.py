@@ -13,10 +13,11 @@ class Object(object):
         self.linepass = None
         self.tempMinDistance = 9999
         self.tempNextPoint = None
+        self.historyPoints = [(x,y)]
 
     def calculatorDistanceToPoint(self,point):
-        return math.sqrt(math.pow(2,self.x-point[0])+math.pow(2,self.y-point[1]))
-
+        # return math.sqrt(math.pow(2,self.x-point[X])+math.pow(2,self.y-point[Y]))
+        return math.hypot(point[X] - self.x, point[Y] - self.y)
 
     def clearTemp(self):
         self.tempMinDistance=9999
@@ -26,10 +27,12 @@ class Object(object):
     def updateObject(self):
         self.x = self.tempNextPoint[X]
         self.y = self.tempNextPoint[Y]
+        self.historyPoints.append((self.x,self.y))
         self.isExist = True
         self.numberLostFrame = 0
 
     def UpdateTracking(self,x,y):
+        self.historyPoints.append((x,y))
         self.x = x
         self.y = y
         self.isExist = True

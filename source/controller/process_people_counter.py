@@ -18,6 +18,7 @@ from source.utils.trackingObject import TrackingObj
 import numpy as np
 import cv2.cv
 from source.learningMachine.detect import Detector
+from utils import Object
 
 
 class PC_Manager(object):
@@ -262,7 +263,7 @@ class Process_People_Counter(multiprocessing.Process):
                         if len(data) > 0:
                             for x in data:
                                 count_y = 0
-                                print x
+                                # print x
                                 # print x[0], x[1]
                                 # print x[1][0] - x[0][0], x[1][1] - x[0][1]
                                 # ckObj = trackObj.check_Obj(x[0],x[2])
@@ -275,7 +276,7 @@ class Process_People_Counter(multiprocessing.Process):
                                 if detector.detect1(display, x[0], x[1], x[2]):
                                     lstPointObjects.append(x[3])
                                     # trackObj.trackingObj(x[0], x[2], 25)
-                                    cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
+                                    # cv2.rectangle(image_left,x[0], x[1],(255,255,255), 1)
                                     # else:
                                     # cv2.rectangle(image_left, x[0], x[1], (255, 255, 255), 15)
                                     cv2.circle(image_left, x[3], 25, (255, 255, 255), 3)
@@ -289,8 +290,17 @@ class Process_People_Counter(multiprocessing.Process):
                                     #     imgx = display[y[0][1]:y[1][1], y[0][0]:y[1][0]]
                                     # cv2.imwrite("../capture/fail/l"+str(count)+str(count_y) + '.jpg', imgx)
                                     # cv2.imwrite("../capture/l"+str(count)+str(count_y) + '.jpg', imgx)
-                        trackObj.trackingAllObject(lstPointObjects)
+                        if len(lstPointObjects) > 0:
+                            trackObj.trackingAllObject(lstPointObjects)
                         trackObj.remove_track()
+                        for headpoint in trackObj.allObj:
+                            firstpoint = None
+                            for point in headpoint.historyPoints:
+                                if firstpoint != None:
+                                    cv2.line(image_left,firstpoint,point,(255, 255, 255), 1)
+                                    firstpoint = point
+                                else:
+                                    firstpoint = point
                         cv2.line(image_left, (0, 144 - 70), (352, 144 - 70), (255, 255, 255), 1)
                         # cv2.line(image_left, (0, 144), (352, 144), (255, 255, 255), 1)
                         cv2.line(image_left, (0, 144 + 70), (352, 144 + 70), (255, 255, 255), 1)
