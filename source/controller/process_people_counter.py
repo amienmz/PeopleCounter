@@ -297,7 +297,7 @@ class Process_People_Counter(multiprocessing.Process):
                             firstpoint = None
                             for point in headpoint.historyPoints:
                                 if firstpoint != None:
-                                    cv2.line(image_left,firstpoint,point,(255, 255, 255), 1)
+                                    cv2.line(image_left,firstpoint,point,headpoint.color, 2)
                                     firstpoint = point
                                 else:
                                     firstpoint = point

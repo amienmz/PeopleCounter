@@ -3,7 +3,7 @@ import math
 X = 0
 Y = 1
 class Object(object):
-    def __init__(self,x,y,radius,isExist):
+    def __init__(self,x,y,radius,isExist, color):
         self.x = x
         self.y = y
         self.r = radius
@@ -14,6 +14,7 @@ class Object(object):
         self.tempMinDistance = 9999
         self.tempNextPoint = None
         self.historyPoints = [(x,y)]
+        self.color = color
 
     def calculatorDistanceToPoint(self,point):
         # return math.sqrt(math.pow(2,self.x-point[X])+math.pow(2,self.y-point[Y]))
