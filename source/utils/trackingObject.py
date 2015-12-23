@@ -112,15 +112,15 @@ class TrackingObj(object):
             # print '--------------'
             # print 'len(arrNew) = ' + str(len(arrPointObject)) + ' isAllMapped = ' + str(self.isAllOldPointMapped())
             newPoint = arrPointObject[0]
-            print '1'
+            # print '1'
             minLength = 9999
             tempLastPoint = None
             for lastPoint in self.allObj:
                 if isinstance(lastPoint, Object):
                     lenth = lastPoint.calculatorDistanceToPoint(newPoint)
-                    print 'len = ' + str(lenth) + ' minLen ' + str(minLength)
+                    # print 'len = ' + str(lenth) + ' minLen ' + str(minLength)
                     if lenth < minLength:
-                        print '1b'
+                        # print '1b'
                         minLength = lenth
                         tempLastPoint = lastPoint
             if not tempLastPoint is None:
@@ -138,18 +138,18 @@ class TrackingObj(object):
                     tempLastPoint.tempNextPoint = newPoint
                     tempLastPoint.tempMinDistance = minLength
                     arrPointObject.remove(newPoint)
-        print '2'
+        # print '2'
         for newPoint in arrPointObject:
             obj = Object(newPoint[X], newPoint[Y], rad, True)
             self.allObj.append(obj)
 
-        print '3'
+        # print '3'
         for lastPoint in self.allObj:
             if isinstance(lastPoint, Object):
                 if lastPoint.tempNextPoint is None:
                     lastPoint.AddFramePass()
                 else:
-                    if lastPoint.tempMinDistance < (lastPoint.numberLostFrame+2)*rad:
+                    if (lastPoint.numberLostFrame<2 and lastPoint.tempMinDistance <= 2*rad) or (lastPoint.numberLostFrame>1 and lastPoint.tempMinDistance <= 4*rad):
                         lastPoint.updateObject()
                         res, ln = self.sysn_line(lastPoint, lastPoint.y, rad)
                         if res:
@@ -163,7 +163,8 @@ class TrackingObj(object):
                                 self.queue_update_pc.put(const.TYPE_IN)
                                 self.queue_post2web.put(const.TYPE_IN)
                     else:
-                        obj = Object(newPoint[X], newPoint[Y], rad, True)
+                        print '>distance numberFrameLost = ' + str(lastPoint.numberLostFrame) + ' minDis = ' + str(lastPoint.tempMinDistance)
+                        obj = Object(tempLastPoint.tempNextPoint[X], tempLastPoint.tempNextPoint[Y], rad, True)
                         self.allObj.append(obj)
 
 
